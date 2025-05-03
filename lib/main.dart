@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
       darkTheme: AppThemes.dark,
       themeMode: themeController.theme,
       defaultTransition: Transition.fade,
-      home: const MainScreen(),
+      home: SplashScreen(),
     );
   }
 }
