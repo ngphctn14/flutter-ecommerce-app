@@ -1,10 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_ecommerce_app/controllers/auth_controller.dart';
+import 'package:flutter_ecommerce_app/view/main_screen.dart';
+import 'package:flutter_ecommerce_app/view/onboarding_screen.dart';
+import 'package:flutter_ecommerce_app/view/signin_screen.dart';
+import 'package:get/get.dart';
 
 class SplashScreen extends StatelessWidget {
-  const SplashScreen({super.key});
+  SplashScreen({super.key});
+
+  final AuthController authController = Get.find<AuthController>();
 
   @override
   Widget build(BuildContext context) {
+    Future.delayed(const Duration(milliseconds: 2500), () {
+      if (authController.isFirstTime) {
+        // first time using the app
+        Get.off(() => const OnboardingScreen());
+      } else if (authController.isLoggedIn) {
+        // user is logged in
+        Get.off(() => const MainScreen());
+      } else {
+        // user is not logged in
+        Get.off(() => SignInScreen());
+      }
+    });
+
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
@@ -100,30 +120,30 @@ class SplashScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  // bottom tagline
-                  Positioned(
-                    bottom: 48,
-                    left: 0,
-                    right: 0,
-                    child: TweenAnimationBuilder<double>(
-                      tween: Tween(begin: 0.0, end: 1.0),
-                      duration: const Duration(milliseconds: 1200),
-                      builder: (context, value, child) {
-                        return Opacity(opacity: value, child: child);
-                      },
-                      child: Text(
-                        "We bring the best products to you",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.9),
-                          fontSize: 14,
-                          letterSpacing: 2,
-                          fontWeight: FontWeight.w300,
-                        ),
-                      ),
-                    ),
-                  ),
                 ],
+              ),
+            ),
+            // bottom tagline
+            Positioned(
+              bottom: 48,
+              left: 0,
+              right: 0,
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0.0, end: 1.0),
+                duration: const Duration(milliseconds: 1200),
+                builder: (context, value, child) {
+                  return Opacity(opacity: value, child: child);
+                },
+                child: Text(
+                  "We bring the best products to you",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.9),
+                    fontSize: 14,
+                    letterSpacing: 2,
+                    fontWeight: FontWeight.w300,
+                  ),
+                ),
               ),
             ),
           ],
