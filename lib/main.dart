@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+
 import 'package:flutter_ecommerce_app/controllers/navigation_controller.dart';
+import 'package:flutter_ecommerce_app/controllers/auth_controller.dart';
+
 import 'package:flutter_ecommerce_app/controllers/theme_controller.dart';
 import 'package:flutter_ecommerce_app/utils/app_themes.dart';
 import 'package:flutter_ecommerce_app/view/main_screen.dart';
@@ -21,13 +24,13 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeController = Get.find<ThemeController>();
     return GetMaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Ecommerce App',
       theme: AppThemes.light,
       darkTheme: AppThemes.dark,
       themeMode: themeController.theme,
       defaultTransition: Transition.fade,
       home: const MainScreen(),
-
     );
   }
 }
