@@ -22,16 +22,16 @@ class SaleBanner extends StatelessWidget{
                 children: [
                   Text(
                     'Get Your',
-                    style: AppTextstyle.withColor(
-                      AppTextstyle.h3,
+                    style: AppTextStyle.withColor(
+                      AppTextStyle.h3,
                       Colors.white,
                     ),
                   ),
                   Text(
                     'Special Sale',
-                    style: AppTextstyle.withColor(
-                      AppTextstyle.withWeight(
-                        AppTextstyle.h2,
+                    style: AppTextStyle.withColor(
+                      AppTextStyle.withWeight(
+                        AppTextStyle.h2,
                         FontWeight.bold,
                       ),
                       Colors.white,
@@ -39,8 +39,8 @@ class SaleBanner extends StatelessWidget{
                   ),
                   Text(
                     'Up to 40%',
-                    style: AppTextstyle.withColor(
-                      AppTextstyle.h3,
+                    style: AppTextStyle.withColor(
+                      AppTextStyle.h3,
                       Colors.white,
                     ),
                   )
@@ -60,7 +60,7 @@ class SaleBanner extends StatelessWidget{
               ),
               child:Text(
                 'Shop Now',
-                style: AppTextstyle.buttonMedium,
+                style: AppTextStyle.buttonMedium,
               )
           ),
         ],

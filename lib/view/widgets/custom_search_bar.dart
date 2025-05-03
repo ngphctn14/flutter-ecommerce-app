@@ -11,14 +11,14 @@ class CustomSearchBar extends StatelessWidget{
     return Padding(
         padding:EdgeInsets.all(16),
       child: TextField(
-        style: AppTextstyle.withColor(
-          AppTextstyle.buttonMedium,
+        style: AppTextStyle.withColor(
+          AppTextStyle.buttonMedium,
           Theme.of(context).textTheme.bodyLarge?.color?? Colors.black,
         ),
         decoration: InputDecoration(
           hintText: 'Search',
-          hintStyle: AppTextstyle.withColor(
-            AppTextstyle.buttonMedium,
+          hintStyle: AppTextStyle.withColor(
+            AppTextStyle.buttonMedium,
             isDark? Colors.grey[400]!: Colors.grey[600]!,
           ),
           prefixIcon: Icon(

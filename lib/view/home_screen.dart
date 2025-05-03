@@ -6,6 +6,9 @@ import 'package:flutter_ecommerce_app/view/widgets/product_grid.dart';
 import 'package:flutter_ecommerce_app/view/widgets/sale_banner.dart';
 import 'package:get/get.dart';
 
+import '../models/product.dart';
+import '../services/product_service.dart';
+
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
@@ -103,7 +106,22 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
               //product grid
-              const  Expanded(child: ProductGrid()),
+              Expanded(
+                child: FutureBuilder<List<Product>>(
+                  future: ProductService.fetchProducts(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    } else if (snapshot.hasError) {
+                      return Center(child: Text('Error: ${snapshot.error}'));
+                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return const Center(child: Text('No products available'));
+                    } else {
+                      return ProductGrid(products: snapshot.data!);
+                    }
+                  },
+                ),
+              )
             ]
           )
       ),

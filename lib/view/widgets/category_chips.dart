@@ -27,11 +27,11 @@ class _CategoryChipsState extends State<CategoryChips>{
                 child: ChoiceChip(
                   label: Text(
                     categories[index],
-                    style: AppTextstyle.withColor(
+                    style: AppTextStyle.withColor(
                       selctedIndex == index
-                          ? AppTextstyle.withWeight(AppTextstyle.bodySmall,
+                          ? AppTextStyle.withWeight(AppTextStyle.bodySmall,
                       FontWeight.w600,
-                      ):AppTextstyle.bodySmall,
+                      ):AppTextStyle.bodySmall,
                       selctedIndex == index? Colors.white:
                       isDark? Colors.grey[300]!:Colors.grey[600]!
                     ),
