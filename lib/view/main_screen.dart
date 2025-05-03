@@ -15,29 +15,30 @@ class MainScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final NavigationController navigationController = Get.find<NavigationController>();
+    final NavigationController navigationController =
+        Get.find<NavigationController>();
 
     return GetBuilder<ThemeController>(
-      builder: (themeController) => Scaffold(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        body: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 200),
-          child: Obx(
+      builder:
+          (themeController) => Scaffold(
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            body: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              child: Obx(
                 () => IndexedStack(
-              key: ValueKey(navigationController.currentIndex.value),
-              index: navigationController.currentIndex.value,
-              children: const [
-                HomeScreen(),
-                ShoppingScreen(),
-                WishlistScreen(),
-                AccountScreen(),
-              ],
+                  key: ValueKey(navigationController.currentIndex.value),
+                  index: navigationController.currentIndex.value,
+                  children: const [
+                    HomeScreen(),
+                    ShoppingScreen(),
+                    WishlistScreen(),
+                    AccountScreen(),
+                  ],
+                ),
+              ),
             ),
+            bottomNavigationBar: const CustomBottomNavbar(),
           ),
-        ),
-        bottomNavigationBar: const CustomBottomNavbar(),
-      ),
     );
-
   }
 }
