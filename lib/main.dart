@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+
+import 'package:flutter_ecommerce_app/controllers/navigation_controller.dart';
 import 'package:flutter_ecommerce_app/controllers/auth_controller.dart';
+
 import 'package:flutter_ecommerce_app/controllers/theme_controller.dart';
 import 'package:flutter_ecommerce_app/utils/app_themes.dart';
+import 'package:flutter_ecommerce_app/view/main_screen.dart';
 import 'package:flutter_ecommerce_app/view/splash_screen.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -9,7 +13,7 @@ import 'package:get_storage/get_storage.dart';
 void main() async {
   await GetStorage.init();
   Get.put(ThemeController());
-  Get.put(AuthController());
+  Get.put(NavigationController());
   runApp(const MyApp());
 }
 
@@ -26,7 +30,7 @@ class MyApp extends StatelessWidget {
       darkTheme: AppThemes.dark,
       themeMode: themeController.theme,
       defaultTransition: Transition.fade,
-      home: SplashScreen(),
+      home: const MainScreen(),
     );
   }
 }
