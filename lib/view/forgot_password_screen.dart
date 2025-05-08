@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_ecommerce_app/utils/app_textstyles.dart';
@@ -8,6 +9,8 @@ class ForgotPasswordScreen extends StatelessWidget {
   ForgotPasswordScreen({super.key});
 
   final TextEditingController _emailController = TextEditingController();
+
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   @override
   Widget build(BuildContext context) {
@@ -77,6 +80,7 @@ class ForgotPasswordScreen extends StatelessWidget {
                     ),
                   ),
                   onPressed: () {
+                    handleForgotPassword();
                     showSuccessDialog(context);
                   },
                   child: Text(
@@ -93,6 +97,10 @@ class ForgotPasswordScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void handleForgotPassword() {
+    _auth.sendPasswordResetEmail(email: _emailController.text);
   }
 
   void showSuccessDialog(BuildContext context) {
