@@ -1,7 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_ecommerce_app/utils/app_textstyles.dart';
 import 'package:flutter_ecommerce_app/view/main_screen.dart';
+import 'package:flutter_ecommerce_app/view/signin_screen.dart';
 import 'package:flutter_ecommerce_app/view/widgets/custom_textfield.dart';
 import 'package:get/get.dart';
 import 'package:get/get_utils/src/get_utils/get_utils.dart';
@@ -16,6 +19,10 @@ class SignUpScreen extends StatefulWidget {
 
 class _SignUpScreenState extends State<SignUpScreen> {
   int _currentStep = 0;
+
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   // User Info Controllers
@@ -89,7 +96,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           _selectedWard != null &&
           _specificAddressController.text.isNotEmpty) {
         // All address fields are filled
-        Get.off(() => const MainScreen());
+        _handleSignUp();
       } else {
         Get.snackbar('Error', 'Please complete your address information');
       }
@@ -385,5 +392,35 @@ class _SignUpScreenState extends State<SignUpScreen> {
         ],
       ),
     );
+  }
+
+  void _handleSignUp() async {
+    if (_formKey.currentState!.validate()) {
+      try {
+        UserCredential userCredential = await _auth
+            .createUserWithEmailAndPassword(
+              email: _emailController.text,
+              password: _passwordController.text,
+            );
+
+        await _firestore.collection('users').doc(userCredential.user!.uid).set({
+          'fullName': _fullNameController.text,
+          'email': _emailController.text,
+          'address': {
+            'province': _selectedProvince?['name'],
+            'provinceCode': _selectedProvince?['code'],
+            'district': _selectedDistrict?['name'],
+            'districtCode': _selectedDistrict?['code'],
+            'ward': _selectedWard?['name'],
+            'wardCode': _selectedWard?['code'],
+            'specificAddress': _specificAddressController.text,
+          },
+        });
+
+        Get.off(() => SignInScreen());
+      } catch (e) {
+        Get.snackbar('Error', e.toString());
+      }
+    }
   }
 }
