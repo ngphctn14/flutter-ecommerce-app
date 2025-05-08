@@ -20,26 +20,51 @@ class _CategoryChipsState extends State<CategoryChips> {
       child: Row(
         children: List.generate(
           categories.length,
-          (index) => Padding(
-            padding: EdgeInsets.only(right: 12),
-            child: AnimatedContainer(
-              duration: const Duration(microseconds: 300),
-              curve: Curves.easeOut,
-              child: ChoiceChip(
-                label: Text(
-                  categories[index],
-                  style: AppTextStyle.withColor(
-                    selctedIndex == index
-                        ? AppTextStyle.withWeight(
-                          AppTextStyle.bodySmall,
-                          FontWeight.w600,
-                        )
-                        : AppTextStyle.bodySmall,
-                    selctedIndex == index
-                        ? Colors.white
-                        : isDark
-                        ? Colors.grey[300]!
-                        : Colors.grey[600]!,
+            (index)=> Padding(
+                padding: EdgeInsets.only(right: 12),
+              child: AnimatedContainer(
+                  duration: const  Duration(microseconds: 300),
+                curve: Curves.easeOut,
+                child: ChoiceChip(
+                  label: Text(
+                    categories[index],
+                    style: AppTextStyle.withColor(
+                      selctedIndex == index
+                          ? AppTextStyle.withWeight(AppTextStyle.bodySmall,
+                      FontWeight.w600,
+                      ):AppTextStyle.bodySmall,
+                      selctedIndex == index? Colors.white:
+                      isDark? Colors.grey[300]!:Colors.grey[600]!
+                    ),
+                  ),
+                  selected: selctedIndex==index,
+                  onSelected: (bool selected){
+                    setState(() {
+                      selctedIndex=selected?index:selctedIndex;
+                    });
+                  },
+                  selectedColor: Theme.of(context).primaryColor,
+                  backgroundColor:isDark? Colors.grey[800]:Colors.grey[100],
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  elevation: selctedIndex == index?2:0,
+                  pressElevation: 0,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  labelPadding: EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 1,
+                  ),
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  side: BorderSide(
+                    color: selctedIndex == index?
+                        Colors.transparent:
+                        isDark? Colors.grey[700]!:Colors.grey[300]!,
+                    width: 1
+
                   ),
                 ),
                 selected: selctedIndex == index,

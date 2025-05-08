@@ -13,13 +13,14 @@ class CustomSearchBar extends StatelessWidget {
       child: TextField(
         style: AppTextStyle.withColor(
           AppTextStyle.buttonMedium,
-          Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
+          Theme.of(context).textTheme.bodyLarge?.color?? Colors.black,
         ),
         decoration: InputDecoration(
           hintText: 'Search',
           hintStyle: AppTextStyle.withColor(
             AppTextStyle.buttonMedium,
-            isDark ? Colors.grey[400]! : Colors.grey[600]!,
+            isDark? Colors.grey[400]!: Colors.grey[600]!,
+
           ),
           prefixIcon: Icon(
             Icons.search,
