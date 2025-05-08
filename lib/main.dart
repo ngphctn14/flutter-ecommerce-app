@@ -6,6 +6,7 @@ import 'package:flutter_ecommerce_app/controllers/auth_controller.dart';
 import 'package:flutter_ecommerce_app/controllers/theme_controller.dart';
 import 'package:flutter_ecommerce_app/utils/app_themes.dart';
 import 'package:flutter_ecommerce_app/view/main_screen.dart';
+import 'package:flutter_ecommerce_app/view/signup_screen.dart';
 import 'package:flutter_ecommerce_app/view/splash_screen.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
