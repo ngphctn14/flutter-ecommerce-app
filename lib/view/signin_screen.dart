@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_ecommerce_app/controllers/auth_controller.dart';
 import 'package:flutter_ecommerce_app/utils/app_textstyles.dart';
@@ -9,6 +10,8 @@ import 'package:get/get.dart';
 
 class SignInScreen extends StatelessWidget {
   SignInScreen({super.key});
+
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -146,8 +149,23 @@ class SignInScreen extends StatelessWidget {
 
   // sign in button onpressed
   void _handleSignIn() {
-    final AuthController authController = Get.find<AuthController>();
-    authController.login();
-    Get.offAll(() => const MainScreen());
+    final authController = Get.find<AuthController>();
+
+    // Basic validation
+    if (_emailController.text.isEmpty ||
+        !GetUtils.isEmail(_emailController.text)) {
+      Get.snackbar('Error', 'Please enter a valid email');
+      return;
+    }
+
+    if (_passwordController.text.isEmpty) {
+      Get.snackbar('Error', 'Please enter your password');
+      return;
+    }
+
+    authController.signInWithEmailAndPassword(
+      _emailController.text.trim(),
+      _passwordController.text.trim(),
+    );
   }
 }

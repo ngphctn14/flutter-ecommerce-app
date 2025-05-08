@@ -11,6 +11,12 @@ class ProductGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GridView.builder(
+      itemBuilder: (context, index) {
+        return Container(
+          color: CupertinoColors.systemGrey4,
+          child: Center(child: Text('Product $index')),
+        );
+      },
       padding: const EdgeInsets.all(16),
       itemCount: products.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
