@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_ecommerce_app/models/product.dart';
+import 'package:flutter_ecommerce_app/models/Product.dart';
 import 'package:flutter_ecommerce_app/view/widgets/product_card.dart';
-import 'package:flutter_ecommerce_app/view/widgets/product_detail_screen.dart'; // mẫu Product của bạn
+import 'package:flutter_ecommerce_app/view/widgets/product_detail_screen.dart';
 
 class ProductGrid extends StatelessWidget {
   final List<Product> products;
@@ -11,12 +11,6 @@ class ProductGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GridView.builder(
-      itemBuilder: (context, index) {
-        return Container(
-          color: CupertinoColors.systemGrey4,
-          child: Center(child: Text('Product $index')),
-        );
-      },
       padding: const EdgeInsets.all(16),
       itemCount: products.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -25,20 +19,20 @@ class ProductGrid extends StatelessWidget {
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
       ),
-        itemBuilder: (context, index) {
-          final product = products[index];
-          return GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ProductDetailScreen(product: product),
-                ),
-              );
-            },
-            child: ProductCard(product: product),
-          );
-        }
+      itemBuilder: (context, index) {
+        final product = products[index];
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ProductDetailScreen(product: product),
+              ),
+            );
+          },
+          child: ProductCard(product: product),
+        );
+      },
     );
   }
 }

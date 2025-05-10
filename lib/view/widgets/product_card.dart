@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_ecommerce_app/models/product.dart';
+import 'package:flutter_ecommerce_app/models/Product.dart';
 
 class ProductCard extends StatelessWidget {
   final Product product;
@@ -16,7 +16,12 @@ class ProductCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            child: Image.network(product.imageUrl, fit: BoxFit.cover),
+            child:Image.network(
+              product.image.isNotEmpty
+                  ? product.image
+                  : 'https://via.placeholder.com/150',
+              fit: BoxFit.cover,
+            ),
           ),
           Padding(
             padding: const EdgeInsets.all(8),

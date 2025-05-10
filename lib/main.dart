@@ -7,6 +7,7 @@ import 'package:flutter_ecommerce_app/controllers/auth_controller.dart';
 import 'package:flutter_ecommerce_app/controllers/theme_controller.dart';
 import 'package:flutter_ecommerce_app/firebase_options.dart';
 import 'package:flutter_ecommerce_app/utils/app_themes.dart';
+import 'package:flutter_ecommerce_app/view/home_screen.dart';
 import 'package:flutter_ecommerce_app/view/main_screen.dart';
 import 'package:flutter_ecommerce_app/view/signup_screen.dart';
 import 'package:flutter_ecommerce_app/view/splash_screen.dart';
@@ -37,7 +38,7 @@ class MyApp extends StatelessWidget {
       darkTheme: AppThemes.dark,
       themeMode: themeController.theme,
       defaultTransition: Transition.fade,
-      home: SplashScreen(),
+      home: MainScreen(),
     );
   }
 }

@@ -6,7 +6,7 @@ import 'package:flutter_ecommerce_app/view/widgets/product_grid.dart';
 import 'package:flutter_ecommerce_app/view/widgets/sale_banner.dart';
 import 'package:get/get.dart';
 
-import '../models/product.dart';
+import '../models/Product.dart';
 import '../services/product_service.dart';
 
 class HomeScreen extends StatelessWidget {
