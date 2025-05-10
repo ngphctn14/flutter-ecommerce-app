@@ -68,7 +68,7 @@ public class OrderServiceImpl implements OrderService {
                 user.setFullName(orderRequest.getFullName());
                 user.setPassword(passwordPlain);
                 user.setShippingAddress(orderRequest.getShippingAddress());
-                userRepository.save(user);
+                user = userRepository.save(user);
 
                 // Role
                 Role role = roleRepository.findByName("USER").orElseThrow();

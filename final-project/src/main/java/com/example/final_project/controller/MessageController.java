@@ -1,15 +1,15 @@
 package com.example.final_project.controller;
 
+import com.example.final_project.dto.AdminMessageRequest;
 import com.example.final_project.dto.CustomUserDetails;
 import com.example.final_project.dto.MessageRequest;
 import com.example.final_project.service.MessageService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
@@ -18,7 +18,7 @@ public class MessageController {
     private final MessageService messageService;
 
     // API gửi tin nhắn từ user gửi cho admin
-    @PostMapping("/api/v1/message/send")
+    @PostMapping(value = "/api/v1/message/send", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> sendMessage(
         @RequestPart("message") MessageRequest messageRequest,
         @RequestPart(value = "image", required = false) MultipartFile image
@@ -29,4 +29,26 @@ public class MessageController {
         return messageService.sendMessage(messageRequest, image, userId);
     }
 
+    // API gửi tin nhắn từ admin -> user
+    @PostMapping(value = "/api/v1/message/reply", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> replyMessage(
+            @RequestPart("message") AdminMessageRequest messageRequest,
+            @RequestPart(value = "image", required = false) MultipartFile image
+    ) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        int adminId = userDetails.getId();
+        return messageService.replyMessage(messageRequest, image, adminId);
+    }
+
+    // API tra ve noi dung cuoc tro chuyen
+    @GetMapping("/api/v1/message/conversation")
+    public ResponseEntity<?> getConversation(
+            @RequestParam("withUserId") int withUserId
+    ) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        int currentUserId = userDetails.getId();
+        return messageService.getConversation(currentUserId, withUserId);
+    }
 }

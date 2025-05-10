@@ -26,6 +26,13 @@ public class UserController {
         return userService.login(userLogin);
     }
 
+    // Login firebase
+//    @PostMapping("/api/v1/firebase-login")
+//    public ResponseEntity<?> firebaseLogin(@RequestHeader("Authorization") String bearerToken) {
+//        String idToken = bearerToken.substring(7);
+//        return userService.firebaseLogin(idToken);
+//    }
+
     @GetMapping("/api/v1/profile/user")
     public ResponseEntity<?> getUserById() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

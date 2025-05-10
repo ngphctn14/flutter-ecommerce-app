@@ -12,5 +12,5 @@ public class UserCreate {
     private String email;
     private String password;
 
-    private String shippingAddress;
+    private AddressDTO address;
 }

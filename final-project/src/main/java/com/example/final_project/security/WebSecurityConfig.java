@@ -51,6 +51,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/v1/recovery/password").permitAll()
                         .requestMatchers("/api/v1/reset/password").permitAll()
                         .requestMatchers("/api/v1/products/**").permitAll()
+                        .requestMatchers("/api/v1/productVariants").permitAll()
                         .requestMatchers("/api/v1/productVariants/**").permitAll()
                         .requestMatchers("/api/v1/category/**").permitAll()
                         .requestMatchers("/api/v1/brand/**").permitAll()
@@ -60,6 +61,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/v1/change-password/user").authenticated()
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/api/v1/ratings").authenticated()
+                        .requestMatchers("/api/v1/message/send").authenticated()
                         .anyRequest().authenticated()
 
                 )

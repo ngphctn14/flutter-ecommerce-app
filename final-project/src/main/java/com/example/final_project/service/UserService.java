@@ -17,4 +17,6 @@ public interface UserService {
     ResponseEntity<?> recoveryPassword(String email);
 
     ResponseEntity<?> resetPassword(ConfirmOTPRequest confirmOTPRequest);
+
+//    ResponseEntity<?> firebaseLogin(String idToken);
 }

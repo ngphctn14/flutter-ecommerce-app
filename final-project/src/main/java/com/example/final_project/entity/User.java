@@ -1,10 +1,10 @@
 package com.example.final_project.entity;
 
+import com.example.final_project.dto.AddressDTO;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -23,11 +23,8 @@ public class User {
     private String email;
     private String password;
 
-    private String shippingAddress;
+    private String firebaseUid;
 
-    @ElementCollection
-    @CollectionTable(name = "user_addresses", joinColumns = @JoinColumn(name = "user_id"))
-    private List<String> deliveryAddress;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private Set<UserRole> userRoles;
@@ -35,6 +32,11 @@ public class User {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private LoyaltyPoint loyaltyPoint;
 
+    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    private List<Address> addresses;
+
+
+    private String shippingAddress;
     // Xác thực mã OTP
     private String resetOtp;
     private LocalDateTime resetOtpExpiryDate;

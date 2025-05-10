@@ -41,4 +41,6 @@ public class ProductVariantController {
     public ResponseEntity<String> deleteProductVariant(@PathVariable int productVariant_id) {
         return productVariantService.deleteProductVariant(productVariant_id);
     }
+
+    // Update thông tin productVariant
 }
