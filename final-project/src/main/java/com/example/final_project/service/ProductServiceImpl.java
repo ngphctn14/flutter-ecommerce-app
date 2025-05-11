@@ -114,6 +114,75 @@ public class ProductServiceImpl implements ProductService {
         return productPage.map(this::mapToResponse);
     }
 
+    @Override
+    public List<ProductResponse> getAllProductsDefault() {
+        List<Product> products = productRepository.findAll();
+
+        return products.stream()
+                .map(product -> ProductResponse.builder()
+                        .id(product.getId())
+                        .name(product.getName())
+                        .price(product.getPrice())
+                        .image(product.getImage())
+                        .description(product.getDescription())
+                        .specs(product.getSpecs())
+                        .categoryName(product.getCategory().getName())
+                        .brandName(product.getBrand().getName())
+                        .build())
+                .toList();
+    }
+
+    @Override
+    public ResponseEntity<String> updateProduct(int productId, ProductRequest productRequest, MultipartFile file) {
+        Optional<Product> product = productRepository.findById(productId);
+        if (product.isEmpty()) {
+            return ResponseEntity.badRequest().body("Product not found");
+        }
+
+        // Lấy category, brand
+        Optional<Category> category = categoryRepository.findById(productRequest.getCategory_id());
+        if (category.isEmpty()) {
+            return ResponseEntity.badRequest().body("Category not found");
+        }
+
+        Optional<Brand> brand = brandRepository.findById(productRequest.getBrand_id());
+        if (brand.isEmpty()) {
+            return ResponseEntity.badRequest().body("Brand not found");
+        }
+
+        product.get().setName(productRequest.getName());
+        product.get().setPrice(productRequest.getPrice());
+        product.get().setDescription(productRequest.getDescription());
+        product.get().setSpecs(productRequest.getSpecs());
+        product.get().setCategory(category.get());
+        product.get().setBrand(brand.get());
+
+        // check file image
+        if (file != null) {
+            String url_image = "";
+            try {
+                url_image = cloudinaryService.uploadImage(file);
+                product.get().setImage(url_image);
+            } catch (IOException e) {
+                return ResponseEntity.badRequest().body("Image cannot be uploaded");
+            }
+        }
+
+        productRepository.save(product.get());
+        return ResponseEntity.ok().body("Product updated successfully!");
+    }
+
+    @Override
+    public ResponseEntity<String> deleteProduct(int productId) {
+        Optional<Product> product = productRepository.findById(productId);
+        if (product.isEmpty()) {
+            return ResponseEntity.badRequest().body("Product not found");
+        }
+
+        productRepository.delete(product.get());
+        return ResponseEntity.ok().body("Product deleted successfully!");
+    }
+
     private ProductResponse mapToResponse(Product product) {
         return ProductResponse.builder()
                 .id(product.getId())

@@ -16,4 +16,6 @@ public interface ProductVariantService {
     ResponseEntity<?> getProductVariants(int productId);
 
     ResponseEntity<String> deleteProductVariant(int productVariant_id);
+
+    ResponseEntity<String> updateProductVariant(int productVariant_id, ProductVariantRequest productVariantRequest, List<MultipartFile> files);
 }

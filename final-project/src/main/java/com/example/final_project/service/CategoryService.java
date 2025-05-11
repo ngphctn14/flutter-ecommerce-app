@@ -17,4 +17,6 @@ public interface CategoryService {
     List<ProductResponse> getProductsByCategory(int id);
 
     ResponseEntity<String> deleteCategory(int categoryId);
+
+    ResponseEntity<String> updateCategory(int categoryId, CategoryRequest categoryRequest);
 }

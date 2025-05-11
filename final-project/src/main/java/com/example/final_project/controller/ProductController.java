@@ -26,6 +26,28 @@ public class ProductController {
         return productService.addProduct(productRequest, file);
     }
 
+    // Lấy list products
+    @GetMapping("/api/v1/products/default")
+    public List<ProductResponse> getAllProductsDefault() {
+        return productService.getAllProductsDefault();
+    }
+
+    // Update products
+    @PutMapping("/api/v1/products/{productId}")
+    public ResponseEntity<String> updateProduct(
+            @PathVariable int productId,
+            @RequestPart("productRequest") ProductRequest productRequest,
+            @RequestPart(value = "file", required = false) MultipartFile file
+    ) {
+        return productService.updateProduct(productId, productRequest, file);
+    }
+
+    // Xoá product
+    @DeleteMapping("/api/v1/products/{productId}")
+    public ResponseEntity<String> deleteProduct(@PathVariable int productId) {
+        return productService.deleteProduct(productId);
+    }
+
     // Sắp xếp theo tên - gía (tăng dần, giảm dần)
     @GetMapping("/api/v1/products")
     public Page<ProductResponse> getAllProducts(
