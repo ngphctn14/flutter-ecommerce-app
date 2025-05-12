@@ -1,17 +1,13 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_ecommerce_app/controllers/auth_controller.dart';
 import 'package:flutter_ecommerce_app/utils/app_textstyles.dart';
 import 'package:flutter_ecommerce_app/view/forgot_password_screen.dart';
-import 'package:flutter_ecommerce_app/view/main_screen.dart';
 import 'package:flutter_ecommerce_app/view/signup_screen.dart';
 import 'package:flutter_ecommerce_app/view/widgets/custom_textfield.dart';
 import 'package:get/get.dart';
 
 class SignInScreen extends StatelessWidget {
   SignInScreen({super.key});
-
-  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();

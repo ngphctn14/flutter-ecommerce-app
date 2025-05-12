@@ -29,3 +29,32 @@ class Product {
     );
   }
 }
+
+final List<Product> products = [
+  const Product(
+    name: 'Product 1',
+    category: 'Category 1',
+    price: 14999999,
+    oldPrice: 39999,
+    imageUrl: 'assets/images/shoe.jpg',
+    desciption: 'Description of Product 1',
+  ),
+  const Product(
+    name: 'Product 1',
+    category: 'Category 1',
+    price: 14999999,
+    oldPrice: 39999,
+    isFavorite: true,
+    imageUrl: 'assets/images/shoe.jpg',
+    desciption: 'Description of Product 1',
+  ),
+  const Product(
+    name: 'Product 1',
+    category: 'Category 1',
+    price: 29999,
+    oldPrice: 39999,
+    isFavorite: true,
+    imageUrl: 'assets/images/shoe.jpg',
+    desciption: 'Description of Product 1',
+  ),
+];

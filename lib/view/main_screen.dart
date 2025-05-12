@@ -28,7 +28,7 @@ class MainScreen extends StatelessWidget {
                 () => IndexedStack(
                   key: ValueKey(navigationController.currentIndex.value),
                   index: navigationController.currentIndex.value,
-                  children: const [
+                  children: [
                     HomeScreen(),
                     ShoppingScreen(),
                     WishlistScreen(),
