@@ -8,10 +8,11 @@ class CustomBottomNavbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final NavigationController navigationController = Get.find<NavigationController>();
+    final NavigationController navigationController =
+        Get.find<NavigationController>();
 
     return Obx(
-          () => BottomNavigationBar(
+      () => BottomNavigationBar(
         currentIndex: navigationController.currentIndex.value,
         onTap: (index) => navigationController.changeIndex(index),
         items: const [
@@ -21,8 +22,8 @@ class CustomBottomNavbar extends StatelessWidget {
           ),
           // Bạn có thể thêm các item khác ở đây
           BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart_outlined),
-            label: 'Cart',
+            icon: Icon(Icons.shopping_bag_outlined),
+            label: 'Shopping',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.favorite_outline),

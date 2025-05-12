@@ -83,7 +83,7 @@ class AuthController extends GetxController {
       if (userCredential.user != null) {
         await fetchUserData(userCredential.user!.uid);
         login(); // Update login state
-        Get.offAll(() => MainScreen());
+        Get.offAllNamed('/');
       }
     } on FirebaseAuthException catch (e) {
       Get.snackbar(
