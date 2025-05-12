@@ -33,6 +33,14 @@ class SettingsScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildSection(context, 'Appearance', [_buildThemeToggle(context)]),
+            _buildSection(context, 'Notifications', [
+              _buildSwitchTile(
+                context,
+                'Email Notifications',
+                'Receive email updates about your orders',
+                true,
+              ),
+            ]),
           ],
         ),
       ),
@@ -55,6 +63,7 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
         ),
+        ...items,
       ],
     );
   }
@@ -99,6 +108,54 @@ class SettingsScreen extends StatelessWidget {
               ),
             ),
           ),
+    );
+  }
+
+  Widget _buildSwitchTile(
+    BuildContext context,
+    String title,
+    String subtitle,
+    bool initialValue,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color:
+                isDark
+                    ? Colors.black.withOpacity(0.2)
+                    : Colors.grey.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ListTile(
+        title: Text(
+          title,
+          style: AppTextStyle.withColor(
+            AppTextStyle.bodyMedium,
+            Theme.of(context).textTheme.bodyLarge!.color!,
+          ),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: AppTextStyle.withColor(
+            AppTextStyle.bodySmall,
+            isDark ? Colors.grey[400]! : Colors.grey[600]!,
+          ),
+        ),
+        trailing: Switch.adaptive(
+          value: initialValue,
+          onChanged: (value) {},
+          activeColor: Theme.of(context).primaryColor,
+        ),
+      ),
     );
   }
 }

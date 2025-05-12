@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_ecommerce_app/controllers/auth_controller.dart';
 import 'package:flutter_ecommerce_app/controllers/theme_controller.dart';
 import 'package:flutter_ecommerce_app/view/cart_screen.dart';
+import 'package:flutter_ecommerce_app/view/my_orders_screen.dart';
 import 'package:flutter_ecommerce_app/view/widgets/category_chips.dart';
 import 'package:flutter_ecommerce_app/view/widgets/custom_search_bar.dart';
 import 'package:flutter_ecommerce_app/view/widgets/product_grid.dart';
@@ -12,10 +14,14 @@ import '../models/product.dart';
 import '../services/product_service.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  HomeScreen({super.key});
+
+  final AuthController authController = Get.find<AuthController>();
 
   @override
   Widget build(BuildContext context) {
+    Map<String, dynamic> userData = authController.user.value;
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
@@ -35,7 +41,7 @@ class HomeScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Hello ALex',
+                        'Hello ${userData['fullName'] ?? 'User'}',
                         style: TextStyle(color: Colors.grey, fontSize: 14),
                       ),
                       Text(
@@ -50,7 +56,7 @@ class HomeScreen extends StatelessWidget {
                   Spacer(),
                   //notification icon
                   IconButton(
-                    onPressed: () => Get.to(() => SettingsScreen()),
+                    onPressed: () => Get.to(() => MyOrdersScreen()),
                     icon: Icon(Icons.notifications),
                   ),
                   //cart button

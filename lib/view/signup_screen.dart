@@ -1,13 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_ecommerce_app/utils/app_textstyles.dart';
-import 'package:flutter_ecommerce_app/view/main_screen.dart';
 import 'package:flutter_ecommerce_app/view/signin_screen.dart';
 import 'package:flutter_ecommerce_app/view/widgets/custom_textfield.dart';
 import 'package:get/get.dart';
-import 'package:get/get_utils/src/get_utils/get_utils.dart';
 import 'package:flutter_ecommerce_app/helpers/vietnamese_provinces_database_helper.dart';
 
 class SignUpScreen extends StatefulWidget {
