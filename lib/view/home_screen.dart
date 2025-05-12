@@ -56,13 +56,13 @@ class HomeScreen extends StatelessWidget {
                   Spacer(),
                   //notification icon
                   IconButton(
-                    onPressed: () => Get.to(() => MyOrdersScreen()),
+                    onPressed: () => Get.toNamed('/my-orders'),
                     icon: Icon(Icons.notifications),
                   ),
                   //cart button
                   IconButton(
-                    onPressed: () => Get.to(() => CartScreen()),
-                    icon: Icon(Icons.shopping_bag_outlined),
+                    onPressed: () => Get.toNamed('/my-cart'),
+                    icon: Icon(Icons.shopping_cart_outlined),
                   ),
                   //theme button
                   GetBuilder<ThemeController>(

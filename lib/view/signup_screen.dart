@@ -1,11 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_ecommerce_app/utils/app_textstyles.dart';
 import 'package:flutter_ecommerce_app/view/signin_screen.dart';
 import 'package:flutter_ecommerce_app/view/widgets/custom_textfield.dart';
 import 'package:get/get.dart';
-import 'package:flutter_ecommerce_app/helpers/vietnamese_provinces_database_helper.dart';
+import 'dart:convert';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -41,8 +42,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController _specificAddressController =
       TextEditingController();
 
-  final dbHelper = VietnameseProvincesDatabaseHelper();
-
   @override
   void initState() {
     super.initState();
@@ -50,36 +49,68 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   Future<void> _loadProvinces() async {
-    final provinces = await dbHelper.getProvinces();
-    setState(() {
-      _provinces = provinces;
-    });
+    try {
+      final String response = await rootBundle.loadString(
+        'assets/db/provinces.json',
+      );
+      final data = await json.decode(response);
+      setState(() {
+        _provinces = List<Map<String, dynamic>>.from(data);
+      });
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to load provinces: $e');
+    }
   }
 
   Future<void> _loadDistricts() async {
     if (_selectedProvince == null) return;
 
-    String provinceCode = _selectedProvince!['code'];
-    final districts = await dbHelper.getDistrictsByProvince(provinceCode);
+    try {
+      final String response = await rootBundle.loadString(
+        'assets/db/districts.json',
+      );
+      final allDistricts = List<Map<String, dynamic>>.from(
+        json.decode(response),
+      );
 
-    setState(() {
-      _districts = districts;
-      _selectedDistrict = null;
-      _wards = [];
-      _selectedWard = null;
-    });
+      setState(() {
+        _districts =
+            allDistricts
+                .where(
+                  (district) =>
+                      district['province_code'] == _selectedProvince!['code'],
+                )
+                .toList();
+        _selectedDistrict = null;
+        _wards = [];
+        _selectedWard = null;
+      });
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to load districts: $e');
+    }
   }
 
   Future<void> _loadWards() async {
     if (_selectedDistrict == null) return;
 
-    String districtCode = _selectedDistrict!['code'];
-    final wards = await dbHelper.getWardsByDistrict(districtCode);
+    try {
+      final String response = await rootBundle.loadString(
+        'assets/db/wards.json',
+      );
+      final allWards = List<Map<String, dynamic>>.from(json.decode(response));
 
-    setState(() {
-      _wards = wards;
-      _selectedWard = null;
-    });
+      setState(() {
+        _wards =
+            allWards
+                .where(
+                  (ward) => ward['district_code'] == _selectedDistrict!['code'],
+                )
+                .toList();
+        _selectedWard = null;
+      });
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to load wards: $e');
+    }
   }
 
   void _continueStep() {
@@ -147,7 +178,24 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                 const SizedBox(width: 8),
                 ElevatedButton(
-                  onPressed: details.onStepContinue,
+                  onPressed: () async {
+                    final querySnapshot =
+                        await _firestore
+                            .collection('users')
+                            .where(
+                              'email',
+                              isEqualTo: _emailController.text.trim(),
+                            )
+                            .limit(1)
+                            .get();
+
+                    if (querySnapshot.docs.isNotEmpty) {
+                      Get.snackbar('Error', 'This email is already registered');
+                      return;
+                    } else {
+                      details.onStepContinue!();
+                    }
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Theme.of(context).primaryColor,
                     padding: EdgeInsets.symmetric(vertical: 16),
@@ -285,7 +333,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         return DropdownMenuItem<String>(
                           value: province['code'] as String,
                           child: Text(
-                            province['name'] as String,
+                            province['full_name'] as String,
                             style: AppTextStyle.withColor(
                               AppTextStyle.bodyMedium,
                               Theme.of(context).textTheme.bodyLarge!.color!,
@@ -321,7 +369,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         return DropdownMenuItem<String>(
                           value: district['code'] as String,
                           child: Text(
-                            district['name'] as String,
+                            district['full_name'] as String,
                             style: AppTextStyle.withColor(
                               AppTextStyle.bodyMedium,
                               Theme.of(context).textTheme.bodyLarge!.color!,
@@ -357,7 +405,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         return DropdownMenuItem<String>(
                           value: ward['code'] as String,
                           child: Text(
-                            ward['name'] as String,
+                            ward['full_name'] as String,
                             style: AppTextStyle.withColor(
                               AppTextStyle.bodyMedium,
                               Theme.of(context).textTheme.bodyLarge!.color!,
@@ -394,29 +442,43 @@ class _SignUpScreenState extends State<SignUpScreen> {
   void _handleSignUp() async {
     if (_formKey.currentState!.validate()) {
       try {
+        // If email doesn't exist, proceed with registration
         UserCredential userCredential = await _auth
             .createUserWithEmailAndPassword(
-              email: _emailController.text,
-              password: _passwordController.text,
+              email: _emailController.text.trim(),
+              password: _passwordController.text.trim(),
             );
 
         await _firestore.collection('users').doc(userCredential.user!.uid).set({
-          'fullName': _fullNameController.text,
-          'email': _emailController.text,
+          'uid': userCredential.user!.uid, // Store UID for easy reference
+          'fullName': _fullNameController.text.trim(),
+          'email': _emailController.text.trim(),
+          'createdAt': FieldValue.serverTimestamp(), // Add timestamp
           'address': {
-            'province': _selectedProvince?['name'],
+            'province': _selectedProvince?['full_name'],
             'provinceCode': _selectedProvince?['code'],
-            'district': _selectedDistrict?['name'],
+            'district': _selectedDistrict?['full_name'],
             'districtCode': _selectedDistrict?['code'],
-            'ward': _selectedWard?['name'],
+            'ward': _selectedWard?['full_name'],
             'wardCode': _selectedWard?['code'],
-            'specificAddress': _specificAddressController.text,
+            'specificAddress': _specificAddressController.text.trim(),
           },
         });
 
-        Get.off(() => SignInScreen());
+        Get.snackbar('Success', 'Registration successful!');
+        Get.offNamed('/signin');
+      } on FirebaseAuthException catch (e) {
+        String errorMessage = 'An error occurred';
+        if (e.code == 'email-already-in-use') {
+          errorMessage = 'This email is already registered';
+        } else if (e.code == 'weak-password') {
+          errorMessage = 'The password provided is too weak';
+        } else if (e.code == 'invalid-email') {
+          errorMessage = 'The email address is not valid';
+        }
+        Get.snackbar('Error', errorMessage);
       } catch (e) {
-        Get.snackbar('Error', e.toString());
+        Get.snackbar('Error', 'An unexpected error occurred');
       }
     }
   }
