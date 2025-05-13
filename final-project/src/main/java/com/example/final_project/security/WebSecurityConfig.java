@@ -51,6 +51,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/v1/recovery/password").permitAll()
                         .requestMatchers("/api/v1/reset/password").permitAll()
                         .requestMatchers("/api/v1/products/**").permitAll()
+                        .requestMatchers("/api/v1/productVariants").permitAll()
                         .requestMatchers("/api/v1/productVariants/**").permitAll()
                         .requestMatchers("/api/v1/category/**").permitAll()
                         .requestMatchers("/api/v1/brand/**").permitAll()
@@ -76,7 +77,7 @@ public class WebSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://127.0.0.1:5500")); // Origin của client
+        configuration.setAllowedOrigins(List.of("http://localhost:53473")); // Origin của client
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true); // Nếu cần gửi credentials (JWT qua header)

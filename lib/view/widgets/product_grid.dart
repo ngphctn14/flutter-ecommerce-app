@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_ecommerce_app/models/product.dart';
+import 'package:flutter_ecommerce_app/models/Product.dart';
 import 'package:flutter_ecommerce_app/view/widgets/product_card.dart';
-import 'package:flutter_ecommerce_app/view/widgets/product_detail_screen.dart'; // mẫu Product của bạn
+import 'package:flutter_ecommerce_app/view/widgets/product_detail_screen.dart';
 
 class ProductGrid extends StatelessWidget {
   final List<Product> products;
