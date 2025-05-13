@@ -74,7 +74,7 @@ class _AccountScreenState extends State<AccountScreen> {
                     _isDarkMode = value;
                   });
                   // Đổi theme tại đây, bạn cần cập nhật trạng thái ứng dụng ngoài màn hình này
-                  // Để thay đổi theme toàn bộ ứng dụng, bạn cần thực hiện trong MaterialApp ở widget gốc
+                  // Để thay đổi theme t  oàn bộ ứng dụng, bạn cần thực hiện trong MaterialApp ở widget gốc
                 },
               ),
             ),

@@ -6,22 +6,32 @@ import 'package:flutter_ecommerce_app/view/widgets/product_grid.dart';
 import 'package:flutter_ecommerce_app/view/widgets/sale_banner.dart';
 import 'package:get/get.dart';
 
+import '../models/Category.dart';
 import '../models/Product.dart';
+import '../services/category_service.dart';
 import '../services/product_service.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int selectedCategoryId = 0;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body:  SafeArea(
-          child: Column(
-            children:[
-            //header section
-              Padding(padding: EdgeInsets.all(16),
-              child:Row(
+      body: SafeArea(
+        child: Column(
+          children: [
+            // header section
+            Padding(
+              padding: EdgeInsets.all(16),
+              child: Row(
                 children: [
                   CircleAvatar(
                     radius: 20,
@@ -31,99 +41,122 @@ class HomeScreen extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Hello ALex',
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 14,
+                      Text(
+                        'Hello Alex',
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 14,
+                        ),
                       ),
-                      ),
-                      Text('Good Morning',
+                      Text(
+                        'Good Morning',
                         style: TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.bold
+                          fontWeight: FontWeight.bold,
                         ),
-                      )
+                      ),
                     ],
                   ),
                   Spacer(),
-                  //notification icon
+                  // notification icon
                   IconButton(
-                      onPressed: (){},
-                      icon: Icon(Icons.notifications
-                      )
+                    onPressed: () {},
+                    icon: Icon(Icons.notifications),
                   ),
-                  //cart button
+                  // cart button
                   IconButton(
-                      onPressed: (){},
-                      icon: Icon(Icons.shopping_bag_outlined
-                      )
+                    onPressed: () {},
+                    icon: Icon(Icons.shopping_bag_outlined),
                   ),
-                  //theme button
+                  // theme button
                   GetBuilder<ThemeController>(
-                      builder:(controller)=>IconButton(
-                          onPressed: ()=> controller.toggleTheme(),
-                          icon: Icon(
-                            controller.isDarkMode ? Icons.light_mode:
-                                Icons.dark_mode,
-                          )
-                  )
-                  )
-                ],
-              )
-              ),
-              //search bar
-              const CustomSearchBar(),
-              //category chips
-              const CategoryChips(),
-              //sale banner
-              const SaleBanner(),
-              //popular product
-              Padding(
-                  padding:EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
+                    builder: (controller) => IconButton(
+                        onPressed: () => controller.toggleTheme(),
+                        icon: Icon(
+                          controller.isDarkMode
+                              ? Icons.light_mode
+                              : Icons.dark_mode,
+                        )),
                   ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Popular Product',
+                ],
+              ),
+            ),
+            // search bar
+            const CustomSearchBar(),
+            // category chips
+            FutureBuilder<List<Category>>(
+              future: CategoryService.fetchCategories(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(child: Text('No categories available'));
+                } else {
+                  return CategoryChips(
+                    categories: snapshot.data!,
+                    onCategorySelected: (categoryId) {
+                      print('Category selected: $categoryId');
+                      setState(() {
+                        selectedCategoryId = categoryId ?? 0;
+                      });
+                    },
+                  );
+                }
+              },
+            ),
+            // sale banner
+            const SaleBanner(),
+            // popular product
+            Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 8,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Popular Product',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () {},
+                    child: Text(
+                      'See All',
                       style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).primaryColor,
                       ),
                     ),
-                    GestureDetector(
-                      onTap: (){},
-                      child: Text(
-                        'See All',
-                        style: TextStyle(
-                          color: Theme.of(context).primaryColor,
-                        ),
-                      ),
-                    )
-                  ],
-                ),
+                  )
+                ],
               ),
-              //product grid
-              Expanded(
-                child: FutureBuilder<List<Product>>(
-                  future: ProductService.fetchProducts(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    } else if (snapshot.hasError) {
-                      return Center(child: Text('Error: ${snapshot.error}'));
-                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return const Center(child: Text('No products available'));
-                    } else {
-                      return ProductGrid(products: snapshot.data!);
-                    }
-                  },
-                ),
-              )
-            ]
-          )
+            ),
+            // product grid
+            Expanded(
+              child: FutureBuilder<List<Product>>(
+                future: selectedCategoryId == 0
+                    ? ProductService.fetchAllProducts()
+                    : ProductService.fetchProductsByCategory(selectedCategoryId),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(child: Text('No products available'));
+                  } else {
+                    return ProductGrid(products: snapshot.data!);
+                  }
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
