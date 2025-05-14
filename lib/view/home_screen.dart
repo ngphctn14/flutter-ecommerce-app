@@ -10,18 +10,25 @@ import 'package:flutter_ecommerce_app/view/widgets/sale_banner.dart';
 import 'package:flutter_ecommerce_app/view/settings_screen.dart';
 import 'package:get/get.dart';
 
-import '../models/product.dart';
+import '../models/Category.dart';
+import '../models/Product.dart';
+import '../services/category_service.dart';
 import '../services/product_service.dart';
 
-class HomeScreen extends StatelessWidget {
-  HomeScreen({super.key});
-
-  final AuthController authController = Get.find<AuthController>();
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    Map<String, dynamic> userData = authController.user.value;
+  State<HomeScreen> createState() => _HomeScreenState();
+}
 
+class _HomeScreenState extends State<HomeScreen> {
+  final AuthController authController = Get.find<AuthController>();
+  int selectedCategoryId = 0;
+  @override
+  Widget build(BuildContext context) {
+    final Map<String, dynamic> userData = authController.user.value;
+    print('User Data: $userData');
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
@@ -64,6 +71,11 @@ class HomeScreen extends StatelessWidget {
                     onPressed: () => Get.toNamed('/my-cart'),
                     icon: Icon(Icons.shopping_cart_outlined),
                   ),
+                  //chat button
+                  IconButton(
+                    onPressed: () => Get.toNamed('/my-cart'),
+                    icon: Icon(Icons.chat_bubble),
+                  ),
                   //theme button
                   GetBuilder<ThemeController>(
                     builder:
@@ -81,8 +93,29 @@ class HomeScreen extends StatelessWidget {
             ),
             //search bar
             const CustomSearchBar(),
-            //category chips
-            const CategoryChips(),
+            // category chips
+            FutureBuilder<List<Category>>(
+              future: CategoryService.fetchCategories(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(child: Text('No categories available'));
+                } else {
+                  return CategoryChips(
+                    selectedCategoryId: selectedCategoryId, // Truyền selectedCategoryId
+                    onCategorySelected: (categoryId) {
+                      print('Category selected: $categoryId');
+                      setState(() {
+                        selectedCategoryId = categoryId ?? 0;
+                      });
+                    },
+                  );
+                }
+              },
+            ),
             //sale banner
             const SaleBanner(),
             //popular product
@@ -95,20 +128,22 @@ class HomeScreen extends StatelessWidget {
                     'Popular Product',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-                  GestureDetector(
-                    onTap: () {},
-                    child: Text(
-                      'See All',
-                      style: TextStyle(color: Theme.of(context).primaryColor),
-                    ),
-                  ),
+                  // GestureDetector(
+                  //   onTap: () {},
+                  //   child: Text(
+                  //     'See All',
+                  //     style: TextStyle(color: Theme.of(context).primaryColor),
+                  //   ),
+                  // ),
                 ],
               ),
             ),
             //product grid
             Expanded(
               child: FutureBuilder<List<Product>>(
-                future: ProductService.fetchProducts(),
+                future: selectedCategoryId == 0
+                    ? ProductService.fetchAllProducts()
+                    : ProductService.fetchProductsByCategory(selectedCategoryId),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());

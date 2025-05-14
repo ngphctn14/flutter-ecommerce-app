@@ -14,7 +14,6 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:53473")
 public class ProductController {
     private final ProductService productService;
 
@@ -40,12 +39,12 @@ public class ProductController {
 
     // Search & Filter theo price, category, brand,...
     @GetMapping("/api/v1/products/filter")
-    public Page<ProductResponse> getFilterProducts(
+            public Page<ProductResponse> getFilterProducts(
             @RequestParam(defaultValue = "") String keyword,
             @RequestParam(required = false) List<Integer> categoryIds,
             @RequestParam(required = false) List<Integer> brandIds,
-            @RequestParam(required = false, defaultValue = "0") double minPrice,
-            @RequestParam(required = false, defaultValue = "30000000") double maxPrice,
+            @RequestParam(required = false) double minPrice,
+            @RequestParam(required = false) double maxPrice,
             @RequestParam int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "name") String sortBy,

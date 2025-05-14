@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../models/Product.dart';
@@ -6,6 +7,8 @@ import '../../models/Review.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+import '../../services/rating_service.dart';
+import '../../models/Rating.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final Product product;
@@ -18,23 +21,27 @@ class ProductDetailScreen extends StatefulWidget {
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   late Future<List<ProductVariant>> futureVariants;
+  late Future<List<Rating>> futureRatings;
   final currencyFormatter = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
   int selectedIndex = 0;
 
   late WebSocketChannel channel;
   List<Review> reviews = [];
 
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
+  Timer? _timer;
+
   @override
   void initState() {
     super.initState();
     futureVariants = fetchProductVariants(widget.product.id);
-
-    // Kết nối WebSocket
+    futureRatings = RatingService.fetchRatings(widget.product.id);
+    // WebSocket kết nối nhận đánh giá
     channel = WebSocketChannel.connect(
       Uri.parse('ws://localhost:8080/ws/reviews/${widget.product.id}'),
     );
 
-    // Lắng nghe dữ liệu đánh giá
     channel.stream.listen((data) {
       final review = Review.fromJson(jsonDecode(data));
       setState(() {
@@ -46,6 +53,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   @override
   void dispose() {
     channel.sink.close();
+    _timer?.cancel();
+    _pageController.dispose();
     super.dispose();
   }
 
@@ -60,6 +69,19 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     } else {
       throw Exception('Failed to load product variants');
     }
+  }
+
+  void startImageAutoScroll(int imageCount) {
+    _timer = Timer.periodic(const Duration(seconds: 3), (_) {
+      if (_pageController.hasClients) {
+        _currentPage = (_currentPage + 1) % imageCount;
+        _pageController.animateToPage(
+          _currentPage,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
   }
 
   @override
@@ -80,6 +102,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           final variants = snapshot.data!;
           final productVariant = variants[selectedIndex];
 
+          // Bắt đầu tự cuộn ảnh
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (_timer == null || !_timer!.isActive) {
+              startImageAutoScroll(productVariant.images.length);
+            }
+          });
+
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -88,18 +117,19 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 // Ảnh sản phẩm
                 SizedBox(
                   height: 250,
-                  child: PageView.builder(
-                    itemCount: productVariant.images.length,
-                    itemBuilder: (context, index) {
-                      return ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Image.network(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: PageView.builder(
+                      controller: _pageController,
+                      itemCount: productVariant.images.length,
+                      itemBuilder: (context, index) {
+                        return Image.network(
                           productVariant.images[index],
                           fit: BoxFit.cover,
                           width: double.infinity,
-                        ),
-                      );
-                    },
+                        );
+                      },
+                    ),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -109,6 +139,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   productVariant.variantName,
                   style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
+
+                const SizedBox(height: 8),
 
                 // Giá
                 Text(
@@ -127,7 +159,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 const SizedBox(height: 20),
 
                 // Chọn phiên bản
-                const Text("Chọn phiên bản:", style: TextStyle(fontSize: 16)),
+                const Text("Chọn phiên bản:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                const SizedBox(height: 6),
                 DropdownButton<int>(
                   value: selectedIndex,
                   items: List.generate(variants.length, (index) {
@@ -139,14 +172,66 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   onChanged: (index) {
                     setState(() {
                       selectedIndex = index!;
+                      _currentPage = 0;
+                      _timer?.cancel();
+                      _pageController.jumpToPage(0);
+                      startImageAutoScroll(variants[index].images.length);
                     });
                   },
                 ),
+                FutureBuilder<List<Rating>>(
+                  future: futureRatings,
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return const Text("Chưa có đánh giá sao nào.");
+                    }
 
+                    final ratings = snapshot.data!;
+                    final double avg = ratings.map((r) => r.stars).reduce((a, b) => a + b) / ratings.length;
+
+                    return Row(
+                      children: [
+                        const Text("Đánh giá trung bình:", style: TextStyle(fontSize: 16)),
+                        const SizedBox(width: 8),
+                        Row(
+                          children: List.generate(
+                            5,
+                                (index) => Icon(
+                              index < avg.round() ? Icons.star : Icons.star_border,
+                              color: Colors.amber,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(avg.toStringAsFixed(1)),
+                      ],
+                    );
+                  },
+                ),
+                // Phần đánh giá sao của người dùng
+                StarRating(onRated: (stars) async {
+                  final response = await http.post(
+                    Uri.parse('http://localhost:8080/api/v1/ratings'),
+                    headers: {'Content-Type': 'application/json'},
+                    body: jsonEncode({
+                      'productId': widget.product.id,
+                      'stars': stars,
+                    }),
+                  );
+                  if (response.statusCode == 200) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Đánh giá $stars sao thành công!')));
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Đánh giá thất bại!')));
+                  }
+                }),
                 const SizedBox(height: 30),
 
+                const Divider(),
+
                 // Đánh giá
-                const Text("Đánh giá sản phẩm:", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const Text("Đánh giá sản phẩm:",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
 
                 const SizedBox(height: 10),
 
@@ -155,7 +240,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 else
                   Column(
                     children: reviews.map((r) => ReviewCard(review: r)).toList(),
-                  )
+                  ),
+
               ],
             ),
           );
@@ -176,9 +262,13 @@ class ReviewCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 6),
       child: ListTile(
         leading: CircleAvatar(
-          child: Text(review.username[0].toUpperCase()),
+          backgroundColor: Colors.blueAccent,
+          child: Text(
+            review.username[0].toUpperCase(),
+            style: const TextStyle(color: Colors.white),
+          ),
         ),
-        title: Text(review.username),
+        title: Text(review.username, style: const TextStyle(fontWeight: FontWeight.w600)),
         subtitle: Text(review.comment),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
@@ -192,6 +282,68 @@ class ReviewCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+class StarRating extends StatefulWidget {
+  final Function(int) onRated;
+
+  const StarRating({super.key, required this.onRated});
+
+  @override
+  State<StarRating> createState() => _StarRatingState();
+}
+
+class _StarRatingState extends State<StarRating> {
+  int _hoveredStar = 0;
+  int _selectedStar = 0;
+
+  void _rate(int stars) async {
+    final confirmed = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Xác nhận'),
+        content: Text('Bạn có muốn đánh giá $stars sao cho sản phẩm này?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Không')),
+          ElevatedButton(onPressed: () => Navigator.pop(context, true), child: Text('Đồng ý')),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      widget.onRated(stars); // Gọi callback để fetch API
+      setState(() => _selectedStar = stars);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(5, (index) {
+        final starIndex = index + 1;
+        final isActive = starIndex <= (_hoveredStar > 0 ? _hoveredStar : _selectedStar);
+
+        return MouseRegion(
+          onEnter: (_) {
+            if (!isMobile) setState(() => _hoveredStar = starIndex);
+          },
+          onExit: (_) {
+            if (!isMobile) setState(() => _hoveredStar = 0);
+          },
+          child: GestureDetector(
+            onTap: () => _rate(starIndex),
+            child: Icon(
+              Icons.star,
+              color: isActive ? Colors.amber : Colors.grey,
+              size: 32,
+            ),
+          ),
+        );
+      }),
     );
   }
 }

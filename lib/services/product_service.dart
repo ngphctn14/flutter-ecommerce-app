@@ -27,6 +27,40 @@ class ProductService {
     }
   }
 
+  static Future<List<Product>> fetchPagedProducts({
+    required int page,
+    int size = 10,
+    String? keyword,
+    int? categoryId,
+    int? brandId,
+    double? minPrice,
+    double? maxPrice,
+  }) async {
+    final queryParams = {
+      'page': '$page',
+      'size': '$size',
+      'direction': 'asc',
+      if (keyword != null && keyword.isNotEmpty) 'keyword': keyword,
+      if (categoryId != null && categoryId != 0) 'categoryIds': '$categoryId',
+      if (brandId != null && brandId != 0) 'brandIds': '$brandId',
+      'minPrice': (minPrice ?? 0).toString(),
+      'maxPrice': (maxPrice ?? 999999999).toString(),
+    };
+
+    final uri = Uri.http('localhost:8080', '/api/v1/products/filter', queryParams);
+    print('Request URI: $uri');
+
+    final response = await http.get(uri);
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return _extractProducts(data);
+    } else {
+      throw Exception('Failed to load filtered products');
+    }
+  }
+
+
   static List<Product> _extractProducts(dynamic json) {
     if (json is List) {
       return json.map((e) => Product.fromJson(e)).toList();

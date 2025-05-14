@@ -1,61 +1,60 @@
 import 'package:flutter/material.dart';
-
-import '../../models/Category.dart';
-import '../../services/category_service.dart';
+import '../../models/Brand.dart';
+import '../../services/brand_service.dart';  // Dịch vụ Brand
 import '../../utils/app_textstyles.dart';
 
-class CategoryChips extends StatefulWidget {
-  final Function(int?) onCategorySelected;
-  final int selectedCategoryId; // Thêm tham số này
+class BrandChips extends StatefulWidget {
+  final Function(int?) onBrandSelected;
+  final int selectedBrandId;  // Thêm tham số này để biết brand nào đang được chọn
 
-  const CategoryChips({
+  const BrandChips({
     super.key,
-    required this.onCategorySelected,
-    required this.selectedCategoryId,
+    required this.onBrandSelected,
+    required this.selectedBrandId,
   });
 
   @override
-  State<CategoryChips> createState() => _CategoryChipsState();
+  State<BrandChips> createState() => _BrandChipsState();
 }
 
-class _CategoryChipsState extends State<CategoryChips> {
-  List<Category> categories = [];
+class _BrandChipsState extends State<BrandChips> {
+  List<Brand> brands = [];
 
   @override
   void initState() {
     super.initState();
-    loadCategories();
+    loadBrands();
   }
 
-  void loadCategories() async {
+  void loadBrands() async {
     try {
-      final fetched = await CategoryService.fetchCategories();
+      final fetched = await BrandService.fetchBrands();  // Gọi dịch vụ để lấy danh sách brand
       setState(() {
-        categories = [Category(id: -1, name: "All"), ...fetched]; // Giữ nút "All"
+        brands = [Brand(id: -1, name: "All"), ...fetched];  // Giữ nút "All" để chọn tất cả
       });
     } catch (e) {
-      print('Error loading categories: $e');
+      print('Error loading brands: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return categories.isEmpty
-        ? CircularProgressIndicator()
+    return brands.isEmpty
+        ? CircularProgressIndicator()  // Nếu chưa có dữ liệu, hiển thị loading
         : SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
-        children: List.generate(categories.length, (index) {
-          final category = categories[index];
-          // Chip được chọn khi selectedCategoryId khớp với category.id ("All" là 0)
-          final isSelected = widget.selectedCategoryId == (category.id == -1 ? 0 : category.id);
+        children: List.generate(brands.length, (index) {
+          final brand = brands[index];
+          // Chip được chọn khi selectedBrandId khớp với brand.id ("All" là 0)
+          final isSelected = widget.selectedBrandId == (brand.id == -1 ? 0 : brand.id);
           return Padding(
             padding: EdgeInsets.only(right: 12),
             child: ChoiceChip(
               label: Text(
-                category.name,
+                brand.name,
                 style: TextStyle(
                   color: isSelected
                       ? Colors.white
@@ -66,7 +65,7 @@ class _CategoryChipsState extends State<CategoryChips> {
               ),
               selected: isSelected,
               onSelected: (bool selected) {
-                widget.onCategorySelected(category.id == -1 ? 0 : category.id);
+                widget.onBrandSelected(brand.id == -1 ? 0 : brand.id);  // Truyền brand.id về hàm callback
               },
               selectedColor: Theme.of(context).primaryColor,
               backgroundColor: isDark ? Colors.grey[800] : Colors.grey[100],

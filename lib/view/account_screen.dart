@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../utils/app_textstyles.dart';
+import 'package:get/get.dart';
+import 'package:flutter_ecommerce_app/controllers/auth_controller.dart';
+import 'package:flutter_ecommerce_app/controllers/theme_controller.dart';  // Import ThemeController
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -11,20 +13,26 @@ class AccountScreen extends StatefulWidget {
 class _AccountScreenState extends State<AccountScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
-  bool _isDarkMode = false;
+  final AuthController authController = Get.find<AuthController>();
 
   @override
   void initState() {
     super.initState();
-    // Thêm dữ liệu mặc định cho tên và địa chỉ
-    _nameController.text = "John Doe"; // Ví dụ
-    _addressController.text = "123 Main St"; // Ví dụ
+    Map<String, dynamic> userData = authController.user.value;
+
+    _nameController.text = userData['fullName'] ?? "John Doe";
+    _addressController.text = formatAddress(userData['address']);
+  }
+
+  String formatAddress(Map<String, dynamic> address) {
+    if (address != null) {
+      return '${address['specificAddress']} ${address['ward']} ${address['district']} ${address['province']}';
+    }
+    return "TDTU";
   }
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Account Settings'),
@@ -32,7 +40,7 @@ class _AccountScreenState extends State<AccountScreen> {
           IconButton(
             icon: const Icon(Icons.exit_to_app),
             onPressed: () {
-              // Thực hiện đăng xuất ở đây
+              // Thực hiện đăng xuất
             },
           ),
         ],
@@ -64,22 +72,19 @@ class _AccountScreenState extends State<AccountScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            // Thay đổi chế độ sáng/tối
-            ListTile(
-              title: const Text('Dark Mode'),
-              trailing: Switch(
-                value: _isDarkMode,
-                onChanged: (bool value) {
-                  setState(() {
-                    _isDarkMode = value;
-                  });
-                  // Đổi theme tại đây, bạn cần cập nhật trạng thái ứng dụng ngoài màn hình này
-                  // Để thay đổi theme t  oàn bộ ứng dụng, bạn cần thực hiện trong MaterialApp ở widget gốc
-                },
+            // Sử dụng GetBuilder để thay đổi chế độ sáng/tối
+            GetBuilder<ThemeController>(
+              builder: (controller) => ListTile(
+                title: const Text('Dark Mode'),
+                trailing: Switch(
+                  value: controller.isDarkMode,
+                  onChanged: (bool value) {
+                    controller.toggleTheme(); // Thay đổi chế độ theme
+                  },
+                ),
               ),
             ),
             const SizedBox(height: 20),
-            // Nút lưu thay đổi
             ElevatedButton(
               onPressed: () {
                 final name = _nameController.text;

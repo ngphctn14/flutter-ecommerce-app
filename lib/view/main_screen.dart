@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_ecommerce_app/view/shopping_screen.dart';
 import 'package:flutter_ecommerce_app/view/widgets/custom_bottoom_navbar.dart';
-import 'package:flutter_ecommerce_app/view/wishlist_screen.dart';
 import 'package:get/get.dart';
 
 import '../controllers/navigation_controller.dart';
@@ -31,7 +30,6 @@ class MainScreen extends StatelessWidget {
                   children: [
                     HomeScreen(),
                     ShoppingScreen(),
-                    WishlistScreen(),
                     AccountScreen(),
                   ],
                 ),

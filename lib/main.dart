@@ -52,7 +52,7 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/forgot-password', page: () => ForgotPasswordScreen()),
         GetPage(name: '/', page: () => MainScreen()),
         GetPage(name: '/my-cart', page: () => CartScreen()),
-        GetPage(name: '/my-orders', page: () => MyOrdersScreen()),
+        // GetPage(name: '/chat', page: () => ChatScreen()),
       ],
     );
   }
