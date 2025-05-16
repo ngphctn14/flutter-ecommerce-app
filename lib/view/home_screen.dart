@@ -1,19 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_ecommerce_app/controllers/auth_controller.dart';
-import 'package:flutter_ecommerce_app/controllers/theme_controller.dart';
-import 'package:flutter_ecommerce_app/view/cart_screen.dart';
-import 'package:flutter_ecommerce_app/view/my_orders_screen.dart';
-import 'package:flutter_ecommerce_app/view/widgets/category_chips.dart';
-import 'package:flutter_ecommerce_app/view/widgets/custom_search_bar.dart';
-import 'package:flutter_ecommerce_app/view/widgets/product_grid.dart';
-import 'package:flutter_ecommerce_app/view/widgets/sale_banner.dart';
-import 'package:flutter_ecommerce_app/view/settings_screen.dart';
 import 'package:get/get.dart';
 
-import '../models/Category.dart';
+import '../controllers/auth_controller.dart';
+import '../controllers/theme_controller.dart';
 import '../models/Product.dart';
-import '../services/category_service.dart';
+import '../models/Category.dart';
 import '../services/product_service.dart';
+import '../services/category_service.dart';
+import 'widgets/sale_banner.dart';
+import 'widgets/ProductHorizontalList.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -24,95 +19,153 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final AuthController authController = Get.find<AuthController>();
-  int selectedCategoryId = 0;
+
+  late Future<List<Product>> _latestProductsFuture;
+  late Future<List<Category>> _categoriesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _latestProductsFuture = _getLatestProducts();
+    _categoriesFuture = CategoryService.fetchCategories();
+  }
+
+  Future<List<Product>> _getLatestProducts() async {
+    final allProducts = await ProductService.fetchAllProducts();
+    allProducts.sort((a, b) => b.id.compareTo(a.id));
+    return allProducts.take(5).toList();
+  }
+
+  Widget _buildProductSection(String title, Future<List<Product>> future, {int? categoryId}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              TextButton(
+                onPressed: () {
+                  Get.toNamed('/shopping', arguments: {
+                    'categoryId': categoryId,
+                    'title': title,
+                  });
+                },
+                child: const Text('Xem tất cả'),
+              ),
+            ],
+          ),
+        ),
+        FutureBuilder<List<Product>>(
+          future: future,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const SizedBox(
+                  height: 200, child: Center(child: CircularProgressIndicator()));
+            } else if (snapshot.hasError) {
+              return SizedBox(
+                height: 100,
+                child: Center(child: Text('Error: ${snapshot.error}')),
+              );
+            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return const SizedBox(
+                  height: 100, child: Center(child: Text('No products available')));
+            }
+            return ProductHorizontalList(products: snapshot.data!);
+          },
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final Map<String, dynamic> userData = authController.user.value;
-    print('User Data: $userData');
+    final userData = authController.user.value;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
-            //header section
+            // Header
             Padding(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  CircleAvatar(
+                  const CircleAvatar(
                     radius: 20,
                     backgroundImage: AssetImage('assets/images/avatar.jpg'),
                   ),
-                  SizedBox(width: 12),
+                  const SizedBox(width: 12),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'Hello ${userData['fullName'] ?? 'User'}',
-                        style: TextStyle(color: Colors.grey, fontSize: 14),
+                        style: const TextStyle(color: Colors.grey, fontSize: 14),
                       ),
-                      Text(
+                      const Text(
                         'Good Morning',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
-                  Spacer(),
-                  //notification icon
+                  const Spacer(),
                   IconButton(
                     onPressed: () => Get.toNamed('/my-orders'),
-                    icon: Icon(Icons.notifications),
+                    icon: const Icon(Icons.notifications),
                   ),
-                  //cart button
                   IconButton(
                     onPressed: () => Get.toNamed('/my-cart'),
-                    icon: Icon(Icons.shopping_cart_outlined),
+                    icon: const Icon(Icons.shopping_cart_outlined),
                   ),
-                  //chat button
                   IconButton(
-                    onPressed: () => Get.toNamed('/my-cart'),
-                    icon: Icon(Icons.chat_bubble),
+                    onPressed: () => Get.toNamed('/chat'),
+                    icon: const Icon(Icons.chat_bubble),
                   ),
-                  //theme button
                   GetBuilder<ThemeController>(
-                    builder:
-                        (controller) => IconButton(
-                          onPressed: () => controller.toggleTheme(),
-                          icon: Icon(
-                            controller.isDarkMode
-                                ? Icons.light_mode
-                                : Icons.dark_mode,
-                          ),
-                        ),
+                    builder: (controller) => IconButton(
+                      onPressed: () => controller.toggleTheme(),
+                      icon: Icon(
+                        controller.isDarkMode
+                            ? Icons.light_mode
+                            : Icons.dark_mode,
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
-            //search bar
-            const CustomSearchBar(),
-            //sale banner
-            const SaleBanner(),
-            //popular product
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Popular Product',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  // GestureDetector(
-                  //   onTap: () {},
-                  //   child: Text(
-                  //     'See All',
-                  //     style: TextStyle(color: Theme.of(context).primaryColor),
-                  //   ),
-                  // ),
-                ],
+
+            // Nội dung chính
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SaleBanner(),
+
+                    _buildProductSection('New Products', _latestProductsFuture),
+
+                    FutureBuilder<List<Category>>(
+                      future: _categoriesFuture,
+                      builder: (context, snapshot) {
+                        if (!snapshot.hasData) return const SizedBox();
+                        final categories = snapshot.data!;
+                        return Column(
+                          children: categories.take(5).map((Category cat) {
+                            return _buildProductSection(
+                              cat.name,
+                              ProductService.fetchProductsByCategory(cat.id),
+                              categoryId: cat.id,
+                            );
+                          }).toList(),
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

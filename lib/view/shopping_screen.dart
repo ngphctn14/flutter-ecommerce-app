@@ -1,9 +1,9 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_ecommerce_app/models/Product.dart';
 import 'package:flutter_ecommerce_app/services/category_service.dart';
 import 'package:flutter_ecommerce_app/services/product_service.dart';
+import 'package:flutter_ecommerce_app/view/widgets/custom_search_bar.dart';
 import 'package:flutter_ecommerce_app/view/widgets/filter_bottom_sheet.dart';
 import 'package:flutter_ecommerce_app/view/widgets/product_grid.dart';
 
@@ -24,10 +24,8 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
   int selectedCategoryId = 0;
   double? minPrice;
   double? maxPrice;
-  String? searchKeyword;
   final TextEditingController searchController = TextEditingController();
   Timer? _debounce;
-
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -54,6 +52,16 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
     }
   }
 
+  void _onSearchChanged() {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      setState(() {
+        searchQuery = searchController.text.trim();
+      });
+      loadProducts(reset: true);
+    });
+  }
+
   Future<void> loadProducts({bool reset = false}) async {
     if (isLoading) return;
 
@@ -76,7 +84,6 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
         minPrice: minPrice,
         maxPrice: maxPrice,
         keyword: searchQuery.isEmpty ? null : searchQuery,
-
       );
 
       setState(() {
@@ -93,7 +100,6 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
     });
   }
 
-
   Future<void> openFilter() async {
     final categories = await CategoryService.fetchCategories();
     FilterBottomSheet.show(
@@ -107,64 +113,57 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
         double? maxPrice,
       }) {
         setState(() {
-          // Cập nhật các giá trị bộ lọc
           this.selectedCategoryId = selectedCategoryId;
           this.selectedBrandId = selectedBrandId;
           this.minPrice = minPrice;
           this.maxPrice = maxPrice;
         });
-        loadProducts(reset: true); // Tải lại danh sách sản phẩm với bộ lọc mới
+        loadProducts(reset: true);
       },
     );
   }
 
-  void _onSearchChanged() {
-    if (_debounce?.isActive ?? false) _debounce!.cancel();
-    _debounce = Timer(const Duration(milliseconds: 500), () {
-      setState(() {
-        searchQuery = searchController.text.trim(); // 🔥 Lấy nội dung từ TextField
-      });
-      loadProducts(reset: true);
-    });
-  }
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(
-        title: TextField(
-          controller: searchController,
-          decoration: const InputDecoration(
-            hintText: 'Tìm kiếm sản phẩm...',
-            border: InputBorder.none,
-            hintStyle: TextStyle(color: Colors.white60),
-          ),
-          style: const TextStyle(color: Colors.white),
-          cursorColor: Colors.white,
-        ),
-        backgroundColor: Theme.of(context).primaryColor, // Lấy màu từ theme
-        actions: [
-          IconButton(
-            onPressed: openFilter,
-            icon: const Icon(Icons.filter_list, color: Colors.white),
-          ),
-        ],
-      ),
-
-      body: Stack(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: Column(
         children: [
-          ProductGrid(
-            products: products,
-            scrollController: _scrollController,
-          ),
-          if (isLoading)
-            const Positioned(
-              bottom: 16,
-              left: 0,
-              right: 0,
-              child: Center(child: CircularProgressIndicator()),
+          SafeArea(
+            child: CustomSearchBar(
+              controller: searchController,
+              onFilterTap: openFilter,
+              onChanged: (text) {
+                if (_debounce?.isActive ?? false) _debounce!.cancel();
+                _debounce = Timer(const Duration(milliseconds: 500), () {
+                  setState(() {
+                    searchQuery = text.trim();
+                  });
+                  loadProducts(reset: true);
+                });
+              },
             ),
+          ),
+
+          Expanded(
+            child: Stack(
+              children: [
+                ProductGrid(
+                  products: products,
+                  scrollController: _scrollController,
+                ),
+                if (isLoading)
+                  const Positioned(
+                    bottom: 16,
+                    left: 0,
+                    right: 0,
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+              ],
+            ),
+          ),
         ],
       ),
     );

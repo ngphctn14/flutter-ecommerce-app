@@ -16,6 +16,7 @@ import 'package:flutter_ecommerce_app/view/onboarding_screen.dart';
 import 'package:flutter_ecommerce_app/view/signin_screen.dart';
 import 'package:flutter_ecommerce_app/view/signup_screen.dart';
 import 'package:flutter_ecommerce_app/view/splash_screen.dart';
+import 'package:flutter_ecommerce_app/view/shopping_screen.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
@@ -52,6 +53,7 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/forgot-password', page: () => ForgotPasswordScreen()),
         GetPage(name: '/', page: () => MainScreen()),
         GetPage(name: '/my-cart', page: () => CartScreen()),
+        GetPage(name: '/shopping', page: () => ShoppingScreen()),
         // GetPage(name: '/chat', page: () => ChatScreen()),
       ],
     );
