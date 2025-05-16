@@ -11,5 +11,4 @@ public class AddressDTO {
     private String districtCode;
     private String province;
     private String provinceCode;
-
 }

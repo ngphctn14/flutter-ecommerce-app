@@ -4,15 +4,10 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.List;
-
 @Getter @Setter
 @Builder
-public class UserResponse {
-    private int userId;
+public class UserUpdate {
     private String fullName;
     private String email;
-    private String image;
-    private boolean active;
-    private List<AddressResponse> addresses;
+    private String password;
 }

@@ -12,6 +12,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:5000")
 public class ProductVariantController {
     private final ProductVariantService productVariantService;
 
@@ -46,7 +47,7 @@ public class ProductVariantController {
     }
 
     // Update quantity in inventory
-    @PostMapping("/api/v1/update/quantity")
+    @PutMapping("/api/v1/update/quantity")
     public ResponseEntity<String> updateQuantityProductVariant(@RequestBody InventoryRequest inventoryRequest) {
         return productVariantService.updateQuantityProductVariant(inventoryRequest);
     }

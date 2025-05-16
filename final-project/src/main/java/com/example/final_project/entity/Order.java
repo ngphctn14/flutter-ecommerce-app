@@ -25,6 +25,8 @@ public class Order {
 
     private double totalAmount;
 
+    private String couponCode;      // Lưu mã giảm gia
+
     private String status;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

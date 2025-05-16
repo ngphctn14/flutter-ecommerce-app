@@ -1,24 +1,23 @@
 package com.example.final_project.service;
 
+import com.example.final_project.cloudinary.CloudinaryService;
 import com.example.final_project.dto.*;
-import com.example.final_project.entity.Address;
-import com.example.final_project.entity.Role;
-import com.example.final_project.entity.User;
-import com.example.final_project.entity.UserRole;
-import com.example.final_project.repository.AddressRepository;
-import com.example.final_project.repository.RoleRepository;
-import com.example.final_project.repository.UserRepository;
-import com.example.final_project.repository.UserRoleRepository;
+import com.example.final_project.entity.*;
+import com.example.final_project.repository.*;
 import com.example.final_project.util.JwtTokenUtil;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
@@ -26,6 +25,7 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -37,9 +37,11 @@ public class UserServiceImpl implements UserService {
     private final JwtTokenUtil jwtTokenUtil;
     private final EmailService emailService;
     private final AddressRepository addressRepository;
+    private final LoyaltyPointRepository loyaltyPointRepository;
+    private final CloudinaryService cloudinaryService;
 
     @Override
-    public ResponseEntity<String> createUser(UserCreate userCreate) {
+    public ResponseEntity<String> createUser(UserCreate userCreate, MultipartFile image) {
         // Nếu chưa có role: user -> tạo role
         UserRole userRole = new UserRole();
         Optional<Role> role_user = roleRepository.findByName("USER");
@@ -66,9 +68,21 @@ public class UserServiceImpl implements UserService {
                 .fullName(userCreate.getFullName())
                 .email(userCreate.getEmail())
                 .password(passwordEncoder.encode(userCreate.getPassword()))
+                .active(true)
+                .createdAt(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")))
                 .build();
 
+        // Upload image
+        String urlImage = "";
+        if (!image.isEmpty()) {
+            try {
+                urlImage = cloudinaryService.uploadImage(image);
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Image upload failed!");
+            }
+        }
 
+        user.setImage(urlImage);
         user = userRepository.save(user);
 
         userRole.setUser(user);
@@ -96,13 +110,17 @@ public class UserServiceImpl implements UserService {
             return ResponseEntity.badRequest().body("User not found");
         }
 
+        if (!user.get().isActive()) {
+            return ResponseEntity.badRequest().body("User account locked!");
+        }
+
         boolean isAuthentication = passwordEncoder.matches(userLogin.getPassword(), user.get().getPassword());
         if (!isAuthentication) {
             return ResponseEntity.badRequest().body("Username or password incorrect");
         }
 
         // ok -> gen token
-        final int ONE_DAY_SECONDS = 15 * 60;
+        final int ONE_DAY_SECONDS = 120 * 60;
 
         Optional<UserRole> userRole = userRoleRepository.findByUserId(user.get().getId());
         Optional<Role> role = roleRepository.findById(userRole.get().getRole().getId());
@@ -135,6 +153,7 @@ public class UserServiceImpl implements UserService {
             List<Address> addresses = addressRepository.findByUserId(userId);
 
             UserResponse userResponse = UserResponse.builder()
+                    .image(user.get().getImage())
                     .fullName(user.get().getFullName())
                     .email(user.get().getEmail())
                     .addresses(addresses.stream()
@@ -220,6 +239,76 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user.get());
 
         return ResponseEntity.ok().body("Reset password successfully");
+    }
+
+    @Override
+    public Page<UserResponse> getAllUsers(Pageable pageable) {
+        Page<User> users = userRepository.findByIdNot(2, pageable);
+
+        return users.map(
+                user -> {
+                    UserResponse userResponse = UserResponse.builder()
+                            .userId(user.getId())
+                            .fullName(user.getFullName())
+                            .email(user.getEmail())
+                            .active(user.isActive())
+                            .build();
+
+                    List<AddressResponse> addressResponses = user.getAddresses().stream()
+                            .map(address -> AddressResponse.builder()
+                                    .addressId(address.getAddress_id())
+                                    .isDefault(address.isDefault())
+                                    .districtCode(address.getDistrictCode())
+                                    .district(address.getDistrict())
+                                    .provinceCode(address.getProvinceCode())
+                                    .province(address.getProvince())
+                                    .build())
+                            .toList();
+
+                    userResponse.setAddresses(addressResponses);
+                    return userResponse;
+                }
+        );
+    }
+
+    @Override
+    public ResponseEntity<?> updateUser(int userId, UserUpdate userUpdate) {
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isEmpty()) {
+            return ResponseEntity.badRequest().body("User not found");
+        }
+
+        user.get().setFullName(userUpdate.getFullName());
+        user.get().setEmail(userUpdate.getEmail());
+        user.get().setPassword(passwordEncoder.encode(userUpdate.getPassword()));
+        userRepository.save(user.get());
+
+        return ResponseEntity.ok().body("User updated successfully");
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<?> deleteUser(int userId) {
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isEmpty()) {
+            return ResponseEntity.badRequest().body("User not found");
+        }
+        userRepository.delete(user.get());
+        return ResponseEntity.ok().body("User deleted successfully");
+    }
+
+    @Override
+    public ResponseEntity<?> bandUser(int userId) {
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isEmpty()) {
+            return ResponseEntity.badRequest().body("User not found");
+        }
+
+        boolean currentStatus = user.get().isActive();
+        user.get().setActive(!currentStatus);
+        userRepository.save(user.get());
+
+        return ResponseEntity.ok().body("User updated");
     }
 
 //    @Override

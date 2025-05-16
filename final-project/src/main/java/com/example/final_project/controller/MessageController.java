@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:5000")
 public class MessageController {
     private final MessageService messageService;
 
@@ -50,5 +51,14 @@ public class MessageController {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         int currentUserId = userDetails.getId();
         return messageService.getConversation(currentUserId, withUserId);
+    }
+
+    // API lấy danh sách user đã trò chuyện với admin
+    @GetMapping("/api/v1/message/users")
+    public ResponseEntity<?> getUsersChattedWith() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        int adminId = userDetails.getId();
+        return messageService.getUsersChattedWith(adminId);
     }
 }

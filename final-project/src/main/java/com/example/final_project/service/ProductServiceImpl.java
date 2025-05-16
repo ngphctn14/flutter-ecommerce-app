@@ -20,6 +20,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
@@ -65,6 +67,7 @@ public class ProductServiceImpl implements ProductService {
                 .image(url_image)
                 .brand(brand.get())
                 .category(category.get())
+                .createdAt(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")))
                 .build();
 
         productRepository.save(product);
@@ -128,6 +131,7 @@ public class ProductServiceImpl implements ProductService {
                         .specs(product.getSpecs())
                         .categoryName(product.getCategory().getName())
                         .brandName(product.getBrand().getName())
+                        .createdAt(product.getCreatedAt())
                         .build())
                 .toList();
     }

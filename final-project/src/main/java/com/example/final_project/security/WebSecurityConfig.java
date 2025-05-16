@@ -20,12 +20,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Function;
 
 @Configuration
 @EnableWebSecurity
@@ -50,14 +47,25 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/v1/login").permitAll()
                         .requestMatchers("/api/v1/recovery/password").permitAll()
                         .requestMatchers("/api/v1/reset/password").permitAll()
+                        .requestMatchers("/api/v1/users").permitAll()
+                        .requestMatchers("/api/v1/users/**").permitAll()
                         .requestMatchers("/api/v1/products/**").permitAll()
                         .requestMatchers("/api/v1/productVariants").permitAll()
                         .requestMatchers("/api/v1/productVariants/**").permitAll()
+                        .requestMatchers("/api/v1/update/quantity").permitAll()
+                        .requestMatchers("/api/v1/orders").permitAll()
+                        .requestMatchers("api/v1/orders/**").permitAll()
+                        .requestMatchers("/api/v1/orders/timeline").permitAll()
+                        .requestMatchers("/api/v1/orders/status/**").permitAll()
+                        .requestMatchers("/api/v1/orders/tracking/**").permitAll()
+                        .requestMatchers("/api/v1/coupon**").permitAll()
+                        .requestMatchers("/api/v1/coupon/**").permitAll()
                         .requestMatchers("/api/v1/category/**").permitAll()
                         .requestMatchers("/api/v1/brand/**").permitAll()
                         .requestMatchers("/api/v1/cart/**").permitAll()
                         .requestMatchers("/api/v1/user/").authenticated()
                         .requestMatchers("/api/v1/reviews/**").permitAll()
+                        .requestMatchers("/api/v1/dashboard/**").permitAll()
                         .requestMatchers("/api/v1/change-password/user").authenticated()
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/api/v1/ratings").authenticated()

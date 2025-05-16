@@ -11,4 +11,6 @@ public interface MessageService {
     ResponseEntity<?> replyMessage(AdminMessageRequest messageRequest, MultipartFile image, int adminId);
 
     ResponseEntity<?> getConversation(int currentUserId, int withUserId);
+
+    ResponseEntity<?> getUsersChattedWith(int adminId);
 }

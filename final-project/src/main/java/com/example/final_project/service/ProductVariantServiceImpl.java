@@ -18,6 +18,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -39,8 +41,10 @@ public class ProductVariantServiceImpl implements ProductVariantService {
             ProductVariant productVariant = ProductVariant.builder()
                     .specs(productVariantRequest.getSpecs())
                     .variantName(productVariantRequest.getVariantName())
+                    .costPrice(productVariantRequest.getCostPrice())
                     .priceDiff(productVariantRequest.getPriceDiff())
                     .product(product.get())
+                    .createdAt(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")))
                     .build();
 
             // Lưu images
@@ -100,8 +104,10 @@ public class ProductVariantServiceImpl implements ProductVariantService {
                         .id(productVariant.getId())
                         .variantName(productVariant.getVariantName())
                         .priceDiff(productVariant.getPriceDiff())
+                        .costPrice(productVariant.getCostPrice())
                         .specs(productVariant.getSpecs())
                         .quantity(productVariant.getInventory().getQuantity())
+                        .createdAt(productVariant.getCreatedAt())
                         .images(productVariant.getImages().stream()
                                 .map(Images::getImagePath)
                                 .toList())
@@ -138,9 +144,11 @@ public class ProductVariantServiceImpl implements ProductVariantService {
         }
 
         productVariant.get().setVariantName(productVariantRequest.getVariantName());
+        productVariant.get().setCostPrice(productVariantRequest.getCostPrice());
         productVariant.get().setPriceDiff(productVariantRequest.getPriceDiff());
         productVariant.get().setSpecs(productVariantRequest.getSpecs());
         productVariant.get().setProduct(product.get());
+        productVariant.get().setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
 
         Optional<ProductVariant> productVariantSaved = Optional.of(productVariantRepository.save(productVariant.get()));
 

@@ -9,6 +9,8 @@ import lombok.Setter;
 public class AddressResponse {
     private int addressId;
 
+    private boolean isDefault;  // Địa chỉ mặc định: true
+
     private String district;
     private String districtCode;
     private String province;

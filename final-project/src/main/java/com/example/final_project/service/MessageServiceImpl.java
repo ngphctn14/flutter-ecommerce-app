@@ -5,6 +5,7 @@ import com.example.final_project.controller.MessageSocketController;
 import com.example.final_project.dto.AdminMessageRequest;
 import com.example.final_project.dto.MessageRequest;
 import com.example.final_project.dto.MessageResponse;
+import com.example.final_project.dto.UserResponse;
 import com.example.final_project.entity.Message;
 import com.example.final_project.entity.User;
 import com.example.final_project.repository.MessageRepository;
@@ -17,8 +18,10 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -68,7 +71,7 @@ public class MessageServiceImpl implements MessageService {
 
         MessageResponse messageResponse = MessageResponse.builder()
                 .messageId(message.getMessageId())
-                .senderId(receiverAdmin.get().getId())
+                .senderId(user.get().getId())
                 .receiverId(receiverAdmin.get().getId())
                 .content(message.getContent())
                 .image(message.getImage())
@@ -120,7 +123,7 @@ public class MessageServiceImpl implements MessageService {
 
         MessageResponse messageResponse = MessageResponse.builder()
                 .messageId(message.getMessageId())
-                .senderId(receiver.get().getId())
+                .senderId(user.get().getId())
                 .receiverId(receiver.get().getId())
                 .content(message.getContent())
                 .image(message.getImage())
@@ -149,5 +152,32 @@ public class MessageServiceImpl implements MessageService {
                 .toList();
 
         return ResponseEntity.ok().body(messageResponses);
+    }
+
+    @Override
+    public ResponseEntity<?> getUsersChattedWith(int adminId) {
+        Optional<User> user = userRepository.findById(adminId);
+        if (user.isEmpty()) {
+            return ResponseEntity.badRequest().body("User not found");
+        }
+
+        List<User> senders = messageRepository.findSendersToAdmin(adminId);
+        List<User> receivers = messageRepository.findReceiversFromAdmin(adminId);
+
+        Set<User> users = new HashSet<>();
+        users.addAll(senders);
+        users.addAll(receivers);
+
+        List<UserResponse> userResponses = users.stream()
+                .map(userTmp -> UserResponse.builder()
+                        .userId(userTmp.getId())
+                        .fullName(userTmp.getFullName())
+                        .email(userTmp.getEmail())
+                        .active(userTmp.isActive())
+                        .build())
+                .toList();
+
+
+        return ResponseEntity.ok().body(userResponses);
     }
 }
