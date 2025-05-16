@@ -15,13 +15,13 @@ class SplashScreen extends StatelessWidget {
     Future.delayed(const Duration(milliseconds: 2500), () {
       if (authController.isFirstTime) {
         // first time using the app
-        Get.off(() => const OnboardingScreen());
+        Get.offNamed('/welcome');
       } else if (authController.isLoggedIn) {
         // user is logged in
-        Get.off(() => const MainScreen());
+        Get.offNamed('/');
       } else {
         // user is not logged in
-        Get.off(() => SignInScreen());
+        Get.offNamed('/signin');
       }
     });
 

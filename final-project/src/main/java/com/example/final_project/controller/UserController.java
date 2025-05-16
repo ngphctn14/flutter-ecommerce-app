@@ -96,4 +96,8 @@ public class UserController {
         return userService.resetPassword(confirmOTPRequest);
     }
 
+    @GetMapping("/api/v1/user/{id}")
+    public ResponseEntity<?> getUserById(@PathVariable("id") int id) {
+        return userService.getUserById(id);
+    }
 }
