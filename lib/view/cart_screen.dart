@@ -1,316 +1,154 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_ecommerce_app/models/Product.dart';
-import 'package:flutter_ecommerce_app/utils/app_textstyles.dart';
-import 'package:get/get.dart';
+import '../models/Coupon.dart';
+import '../services/cart_service.dart';
+import '../models/CartResponse.dart';
+import '../services/coupon_service.dart';
+import 'package:intl/intl.dart';
 
-class CartScreen extends StatelessWidget {
-  const CartScreen({super.key});
+class CartScreen extends StatefulWidget {
+  const CartScreen({Key? key}) : super(key: key);
+
+  @override
+  State<CartScreen> createState() => _CartScreenState();
+}
+
+class _CartScreenState extends State<CartScreen> {
+  late Future<CartResponse?> _futureCart;
+  List<Coupon> _coupons = [];
+  Coupon? _selectedCoupon;
+  final _currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCart();
+    _loadCoupons();
+
+  }
+
+  void _loadCart() {
+    _futureCart = CartService.getCart();
+  }
+  void _loadCoupons() async {
+    try {
+      final coupons = await CouponService.getCoupons();
+      setState(() {
+        _coupons = coupons;
+      });
+    } catch (e) {
+      print('Load coupons error: $e');
+    }
+  }
+  void _updateQuantity(int cartItemId, int newQuantity) async {
+    if (newQuantity == 0) {
+      await CartService.deleteItem(cartItemId);
+    } else {
+      await CartService.updateQuantity(cartItemId, newQuantity);
+    }
+    setState(() => _loadCart());
+  }
+  double _calculateDiscountedTotal(double total) {
+    if (_selectedCoupon != null) {
+      return (total - _selectedCoupon!.discountPrice).clamp(0, double.infinity);
+    }
+    return total;
+  }
+
+  void _deleteItem(int cartItemId) async {
+    await CartService.deleteItem(cartItemId);
+    setState(() => _loadCart());
+  }
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          onPressed: () => Get.back(),
-          icon: Icon(Icons.arrow_back_ios),
-          color: isDark ? Colors.white : Colors.black,
-        ),
-        title: Text(
-          'My Cart',
-          style: AppTextStyle.withColor(
-            AppTextStyle.h3,
-            isDark ? Colors.white : Colors.black,
-          ),
-        ),
-      ),
-      body: Column(
-        // children: [
-        //   Expanded(
-        //     child: ListView.builder(
-        //       padding: const EdgeInsets.all(16),
-        //       itemCount: products.length,
-        //       itemBuilder:
-        //           (context, index) => _buildCartItem(context, products[index]),
-        //     ),
-        //   ),
-        //   _buildCartSummary(context),
-        // ],
-      ),
-    );
-  }
+      appBar: AppBar(title: Text('Your Cart')),
+      body: FutureBuilder<CartResponse?>(
+        future: _futureCart,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting)
+            return Center(child: CircularProgressIndicator());
+          if (snapshot.hasError) {
+            print('Cart load error: ${snapshot.error}');
+            return Center(child: Text('Error loading cart: ${snapshot.error}'));
+          }
 
-  // Widget _buildCartItem(BuildContext context, Product product) {
-  //   final isDark = Theme.of(context).brightness == Brightness.dark;
-  //
-  //   return Container(
-  //     margin: const EdgeInsets.only(bottom: 16),
-  //     decoration: BoxDecoration(
-  //       color: Theme.of(context).cardColor,
-  //       borderRadius: BorderRadius.circular(16),
-  //       boxShadow: [
-  //         BoxShadow(
-  //           color:
-  //               isDark
-  //                   ? Colors.black.withOpacity(0.2)
-  //                   : Colors.grey.withOpacity(0.1),
-  //           blurRadius: 8,
-  //           offset: const Offset(0, 2),
-  //         ),
-  //       ],
-  //     ),
-  //     child: Row(
-  //       children: [
-  //         ClipRRect(
-  //           borderRadius: const BorderRadius.horizontal(
-  //             left: Radius.circular(16),
-  //           ),
-  //           child: Image.asset(
-  //             product.imageUrl,
-  //             width: 100,
-  //             height: 100,
-  //             fit: BoxFit.cover,
-  //           ),
-  //         ),
-  //         Expanded(
-  //           child: Padding(
-  //             padding: EdgeInsets.all(12),
-  //             child: Column(
-  //               children: [
-  //                 Row(
-  //                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //                   children: [
-  //                     Expanded(
-  //                       child: Text(
-  //                         product.name,
-  //                         style: AppTextStyle.withColor(
-  //                           AppTextStyle.bodyLarge,
-  //                           Theme.of(context).textTheme.bodyLarge!.color!,
-  //                         ),
-  //                         maxLines: 2,
-  //                         overflow: TextOverflow.ellipsis,
-  //                       ),
-  //                     ),
-  //                     IconButton(
-  //                       onPressed:
-  //                           () =>
-  //                               _showDeleteConfirmationDialog(context, product),
-  //                       icon: Icon(
-  //                         Icons.delete_outline,
-  //                         color: Colors.red[400],
-  //                       ),
-  //                     ),
-  //                   ],
-  //                 ),
-  //                 const SizedBox(height: 8),
-  //                 Row(
-  //                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //                   children: [
-  //                     Expanded(
-  //                       child: Text(
-  //                         '${product.price} VNĐ',
-  //                         style: AppTextStyle.withColor(
-  //                           AppTextStyle.h3,
-  //                           Theme.of(context).primaryColor,
-  //                         ),
-  //                       ),
-  //                     ),
-  //                     Container(
-  //                       decoration: BoxDecoration(
-  //                         color: Theme.of(
-  //                           context,
-  //                         ).primaryColor.withOpacity(0.1),
-  //                         borderRadius: BorderRadius.circular(8),
-  //                       ),
-  //                       child: Row(
-  //                         children: [
-  //                           IconButton(
-  //                             onPressed: () {},
-  //                             icon: Icon(
-  //                               Icons.remove,
-  //                               size: 20,
-  //                               color: Theme.of(context).primaryColor,
-  //                             ),
-  //                           ),
-  //                           Text(
-  //                             '1',
-  //                             style: AppTextStyle.withColor(
-  //                               AppTextStyle.bodyLarge,
-  //                               Theme.of(context).primaryColor,
-  //                             ),
-  //                           ),
-  //                           IconButton(
-  //                             onPressed: () {},
-  //                             icon: Icon(
-  //                               Icons.add,
-  //                               size: 20,
-  //                               color: Theme.of(context).primaryColor,
-  //                             ),
-  //                           ),
-  //                         ],
-  //                       ),
-  //                     ),
-  //                   ],
-  //                 ),
-  //               ],
-  //             ),
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
+          if (!snapshot.hasData || snapshot.data!.cartItemResponseList.isEmpty)
+            return Center(child: Text('Cart is empty'));
 
-  void _showDeleteConfirmationDialog(BuildContext context, Product product) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+          final cart = snapshot.data!;
+          double totalPriceAfterDiscount = cart.totalPrice;
+          if (_selectedCoupon != null) {
+            totalPriceAfterDiscount -= _selectedCoupon!.discountPrice;
+            if (totalPriceAfterDiscount < 0) totalPriceAfterDiscount = 0;
+          }
+          return Column(
+            children: [
+              Expanded(
+                child: ListView.builder(
+                  itemCount: cart.cartItemResponseList.length,
+                  itemBuilder: (context, index) {
+                    final item = cart.cartItemResponseList[index];
+                    return ListTile(
+                      leading: Image.network(item.image, width: 60, height: 60),
+                      title: Text(item.productName),
+                      subtitle: Row(
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.remove),
+                            onPressed: () => _updateQuantity(item.id, item.quantity - 1),
+                          ),
+                          Text('${item.quantity}'),
+                          IconButton(
+                            icon: Icon(Icons.add),
+                            onPressed: () => _updateQuantity(item.id, item.quantity + 1),
+                          ),
+                          Spacer(),
+                          IconButton(
+                            icon: Icon(Icons.delete, color: Colors.red),
+                            onPressed: () => _deleteItem(item.id),
+                          ),
+                        ],
+                      ),
 
-    Get.dialog(
-      AlertDialog(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        contentPadding: const EdgeInsets.all(24),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.red[400]!.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(Icons.delete_outline, color: Colors.red[400]),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Remove Item',
-              style: AppTextStyle.withColor(
-                AppTextStyle.h3,
-                Theme.of(context).textTheme.bodyLarge!.color!,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Are you sure you want to remove his item from your cart?',
-              textAlign: TextAlign.center,
-              style: AppTextStyle.withColor(
-                AppTextStyle.bodyMedium,
-                isDark ? Colors.grey[400]! : Colors.grey[600]!,
-              ),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Get.back(),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      side: BorderSide(
-                        color: isDark ? Colors.white : Colors.black,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: Text(
-                      'Cancel',
-                      style: AppTextStyle.withColor(
-                        AppTextStyle.bodyMedium,
-                        Theme.of(context).textTheme.bodyLarge!.color!,
-                      ),
-                    ),
-                  ),
+                      trailing: Text(_currencyFormat.format(item.price * item.quantity)),
+                    );
+                  },
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // Handle item removal logic here
-                      Get.back();
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red[400],
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: Text(
-                      'Remove',
-                      style: AppTextStyle.withColor(
-                        AppTextStyle.bodyMedium,
-                        Colors.white,
-                      ),
-                    ),
-                  ),
+              ),
+              Divider(),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+                child: DropdownButton<Coupon>(
+                  hint: Text('Select a voucher'),
+                  value: _selectedCoupon,
+                  isExpanded: true,
+                  items: _coupons.map((coupon) {
+                    return DropdownMenuItem(
+                      value: coupon,
+                      child: Text('${coupon.code} - Giảm ${_currencyFormat.format(coupon.discountPrice)}'),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedCoupon = value;
+                    });
+                  },
                 ),
-              ],
-            ),
-          ],
-        ),
-      ),
-      barrierColor: Colors.black54,
-    );
-  }
+              ),
 
-  Widget _buildCartSummary(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
-          ),
-        ],
-      ),
-      child: Column(
-        // children: [
-        //   Row(
-        //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        //     children: [
-        //       Text(
-        //         'Total (${products.length} items)',
-        //         style: AppTextStyle.withColor(
-        //           AppTextStyle.bodyMedium,
-        //           Theme.of(context).textTheme.bodyLarge!.color!,
-        //         ),
-        //       ),
-        //       Text(
-        //         '1.200.000 VNĐ',
-        //         style: AppTextStyle.withColor(
-        //           AppTextStyle.h2,
-        //           Theme.of(context).primaryColor,
-        //         ),
-        //       ),
-        //     ],
-        //   ),
-        //   const SizedBox(height: 16),
-        //   SizedBox(
-        //     width: double.infinity,
-        //     child: ElevatedButton(
-        //       onPressed: () {},
-        //       style: ElevatedButton.styleFrom(
-        //         padding: const EdgeInsets.symmetric(vertical: 16),
-        //         backgroundColor: Theme.of(context).primaryColor,
-        //         shape: RoundedRectangleBorder(
-        //           borderRadius: BorderRadius.circular(12),
-        //         ),
-        //       ),
-        //       child: Text(
-        //         'Proceed to Checkout',
-        //         style: AppTextStyle.withColor(
-        //           AppTextStyle.buttonMedium,
-        //           Colors.white,
-        //         ),
-        //       ),
-        //     ),
-        //   ),
-        // ],
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  'Tổng cộng: ${_currencyFormat.format(_calculateDiscountedTotal(cart.totalPrice))}',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 }
+

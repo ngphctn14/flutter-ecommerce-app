@@ -58,6 +58,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/v1/cart/**").permitAll()
                         .requestMatchers("/api/v1/user/").authenticated()
                         .requestMatchers("/api/v1/reviews/**").permitAll()
+                        .requestMatchers("/api/v1/coupon/**").permitAll()
                         .requestMatchers("/api/v1/change-password/user").authenticated()
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/api/v1/ratings").authenticated()
@@ -77,7 +78,7 @@ public class WebSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:53473")); // Origin của client
+        configuration.setAllowedOrigins(List.of("http://localhost:54331")); // Origin của client
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true); // Nếu cần gửi credentials (JWT qua header)

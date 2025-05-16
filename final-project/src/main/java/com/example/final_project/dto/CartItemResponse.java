@@ -7,6 +7,7 @@ import lombok.Setter;
 @Builder
 @Getter @Setter
 public class CartItemResponse {
+    private int id;  // cart_item.id
     private int productVariantId;  // ID của variant sản phẩm trong giỏ hàng
     private String productName;  // Tên sản phẩm
     private double price;  // Giá của sản phẩm

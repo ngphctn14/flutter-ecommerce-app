@@ -93,29 +93,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             //search bar
             const CustomSearchBar(),
-            // category chips
-            FutureBuilder<List<Category>>(
-              future: CategoryService.fetchCategories(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('No categories available'));
-                } else {
-                  return CategoryChips(
-                    selectedCategoryId: selectedCategoryId, // Truyền selectedCategoryId
-                    onCategorySelected: (categoryId) {
-                      print('Category selected: $categoryId');
-                      setState(() {
-                        selectedCategoryId = categoryId ?? 0;
-                      });
-                    },
-                  );
-                }
-              },
-            ),
             //sale banner
             const SaleBanner(),
             //popular product
@@ -136,25 +113,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   //   ),
                   // ),
                 ],
-              ),
-            ),
-            //product grid
-            Expanded(
-              child: FutureBuilder<List<Product>>(
-                future: selectedCategoryId == 0
-                    ? ProductService.fetchAllProducts()
-                    : ProductService.fetchProductsByCategory(selectedCategoryId),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(child: Text('No products available'));
-                  } else {
-                    return ProductGrid(products: snapshot.data!);
-                  }
-                },
               ),
             ),
           ],

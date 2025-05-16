@@ -131,6 +131,7 @@ public class CartServiceImpl implements CartService {
         double totalPrice = 0;
         for (CartItem cartItem: cartItemList) {
             CartItemResponse cartItemResponse = CartItemResponse.builder()
+                    .id(cartItem.getId())
                     .productVariantId(cartItem.getVariant().getId())
                     .productName(cartItem.getVariant().getVariantName())
                     .image(cartItem.getVariant().getImages().get(0).getImagePath())

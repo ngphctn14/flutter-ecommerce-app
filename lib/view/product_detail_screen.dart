@@ -1,14 +1,16 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import '../../models/Product.dart';
-import '../../models/ProductVariant.dart';
-import '../../models/Review.dart';
+import '../models/Product.dart';
+import '../models/ProductVariant.dart';
+import '../models/Review.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
-import '../../services/rating_service.dart';
-import '../../models/Rating.dart';
+import '../services/cart_service.dart';
+import '../services/rating_service.dart';
+import '../models/Rating.dart';
+import 'package:get/get.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final Product product;
@@ -83,11 +85,34 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       }
     });
   }
+  void _addToCart(int variantId) async {
+
+    final success = await CartService.addToCart(variantId, 1);
+    final msg = success ? "Đã thêm vào giỏ hàng!" : "Thêm thất bại!";
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  }
+
+  void _buyNow(int variantId) async {
+    final success = await CartService.addToCart(variantId, 1);
+    if (success) {
+      Navigator.pushNamed(context, '/my-cart'); // Đảm bảo bạn có route này
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Mua thất bại!')));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.product.name)),
+      appBar: AppBar(
+        title: Text(widget.product.name),
+        actions: [
+          IconButton(
+            onPressed: () => Get.toNamed('/my-cart'),
+            icon: Icon(Icons.shopping_cart_outlined),
+          ),
+        ],
+      ),
       body: FutureBuilder<List<ProductVariant>>(
         future: futureVariants,
         builder: (context, snapshot) {
@@ -225,6 +250,26 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Đánh giá thất bại!')));
                   }
                 }),
+                const SizedBox(height: 30),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => _addToCart(productVariant.id),
+                        icon: const Icon(Icons.add_shopping_cart),
+                        label: const Text('Thêm vào giỏ'),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => _buyNow(productVariant.id),
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+                        child: const Text('Mua ngay'),
+                      ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 30),
 
                 const Divider(),
