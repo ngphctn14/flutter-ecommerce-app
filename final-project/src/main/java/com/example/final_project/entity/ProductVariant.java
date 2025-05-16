@@ -3,6 +3,7 @@ package com.example.final_project.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -18,8 +19,11 @@ public class ProductVariant {
     private int id;
 
     private String variantName;
+    private double costPrice;   // Giá gốc
     private double priceDiff;   // Gia chenh lech
     private String specs;       // Lưu thông số product (RAM, ROM,...)
+
+    private LocalDateTime createdAt;
 
     @ManyToOne
     @JoinColumn(name = "product_id")
@@ -31,6 +35,4 @@ public class ProductVariant {
     // Liên kết nhiều images
     @OneToMany(mappedBy = "productVariant", cascade = CascadeType.ALL)
     private List<Images> images;
-
-
 }

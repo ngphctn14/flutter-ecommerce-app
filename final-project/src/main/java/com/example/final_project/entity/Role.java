@@ -18,4 +18,8 @@ public class Role {
 
     @OneToMany(mappedBy = "role", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private Set<UserRole> roleUsers;
+
+    public Role(String name) {
+        this.name = name;
+    }
 }

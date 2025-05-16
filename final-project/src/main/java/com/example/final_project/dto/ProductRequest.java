@@ -11,7 +11,7 @@ public class ProductRequest {
     private double price;
     private String description;
 
-    // Lưu thông số product (RAM, ROM,...)
+    // Lưu thông số product json (RAM, ROM,...)
     private String specs;
 
     private int category_id;

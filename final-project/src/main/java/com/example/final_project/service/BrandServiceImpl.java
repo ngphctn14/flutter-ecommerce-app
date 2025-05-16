@@ -75,4 +75,16 @@ public class BrandServiceImpl implements BrandService {
         }
         return null;
     }
+
+    @Override
+    public ResponseEntity<String> updateBrand(int id, BrandRequest brandRequest) {
+        Optional<Brand> brand = brandRepository.findById(id);
+        if (brand.isEmpty()) {
+            return ResponseEntity.badRequest().body("Brand not found");
+        }
+
+        brand.get().setName(brandRequest.getName());
+        brandRepository.save(brand.get());
+        return ResponseEntity.ok().body("Successfully updated brand");
+    }
 }

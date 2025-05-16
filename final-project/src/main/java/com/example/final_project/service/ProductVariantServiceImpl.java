@@ -18,6 +18,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -39,8 +41,10 @@ public class ProductVariantServiceImpl implements ProductVariantService {
             ProductVariant productVariant = ProductVariant.builder()
                     .specs(productVariantRequest.getSpecs())
                     .variantName(productVariantRequest.getVariantName())
+                    .costPrice(productVariantRequest.getCostPrice())
                     .priceDiff(productVariantRequest.getPriceDiff())
                     .product(product.get())
+                    .createdAt(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")))
                     .build();
 
             // Lưu images
@@ -100,8 +104,10 @@ public class ProductVariantServiceImpl implements ProductVariantService {
                         .id(productVariant.getId())
                         .variantName(productVariant.getVariantName())
                         .priceDiff(productVariant.getPriceDiff())
+                        .costPrice(productVariant.getCostPrice())
                         .specs(productVariant.getSpecs())
                         .quantity(productVariant.getInventory().getQuantity())
+                        .createdAt(productVariant.getCreatedAt())
                         .images(productVariant.getImages().stream()
                                 .map(Images::getImagePath)
                                 .toList())
@@ -122,5 +128,63 @@ public class ProductVariantServiceImpl implements ProductVariantService {
             return ResponseEntity.ok().body("Product variant deleted");
         }
         return ResponseEntity.badRequest().body("Product variant not found");
+    }
+
+    @Override
+    public ResponseEntity<String> updateProductVariant(int productVariant_id, ProductVariantRequest productVariantRequest, List<MultipartFile> files) {
+        Optional<ProductVariant> productVariant = productVariantRepository.findById(productVariant_id);
+        if (productVariant.isEmpty()) {
+            return ResponseEntity.badRequest().body("Product Variant not found");
+        }
+
+        // Kiểm tra product original
+        Optional<Product> product = productRepository.findById(productVariantRequest.getProductId());
+        if (product.isEmpty()){
+            return ResponseEntity.badRequest().body("Product not found");
+        }
+
+        productVariant.get().setVariantName(productVariantRequest.getVariantName());
+        productVariant.get().setCostPrice(productVariantRequest.getCostPrice());
+        productVariant.get().setPriceDiff(productVariantRequest.getPriceDiff());
+        productVariant.get().setSpecs(productVariantRequest.getSpecs());
+        productVariant.get().setProduct(product.get());
+        productVariant.get().setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
+
+        Optional<ProductVariant> productVariantSaved = Optional.of(productVariantRepository.save(productVariant.get()));
+
+        // Lưu images
+        // Update lại ảnh mới
+        List<Images> images = new ArrayList<>();
+        if (files != null && !files.isEmpty()) {
+            List<Images> imagesList = imagesRepository.findAllByProductVariantId(productVariant.get().getId());
+            // Xóa image cũ
+            imagesRepository.deleteAll(imagesList);
+
+            for (MultipartFile file : files) {
+                Images image = new Images();
+                String urlImage = "";
+                try {
+                    urlImage = cloudinaryService.uploadImage(file);
+                    image.setImagePath(urlImage);
+                    image.setProductVariant(productVariantSaved.get());
+                } catch (IOException e) {
+                    return ResponseEntity.badRequest().body("Image can not be uploaded");
+                }
+                images.add(image);
+            }
+        }
+
+        Optional<Inventory> inventory = inventoryRepository.findByProductVariantId(productVariant_id);
+        if (inventory.isEmpty()) {
+            return ResponseEntity.badRequest().body("Product variant not found");
+        }
+
+        inventory.get().setQuantity(productVariantRequest.getQuantity());
+        inventoryRepository.save(inventory.get());
+
+        // Lưu ảnh
+        imagesRepository.saveAll(images);
+
+        return ResponseEntity.ok().body("Product variant updated");
     }
 }

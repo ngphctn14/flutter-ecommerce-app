@@ -13,6 +13,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:5000")
 public class BrandController {
     private final BrandService brandService;
 
@@ -30,6 +31,11 @@ public class BrandController {
     @GetMapping("/api/v1/brand/products/{id}")
     public List<ProductResponse> getProductsByBrandId(@PathVariable int id) {
         return brandService.getProductsByBrandId(id);
+    }
+
+    @PutMapping("/api/v1/brand/{id}")
+    public ResponseEntity<String> updateBrand(@PathVariable int id, @RequestBody BrandRequest brandRequest) {
+        return brandService.updateBrand(id, brandRequest);
     }
 
     @DeleteMapping("/api/v1/brand/{id}")

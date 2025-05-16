@@ -9,6 +9,9 @@ import lombok.Setter;
 public class OrderRequest {
     private String fullName;
     private String email;
+
+    // id của address mà user chọn
+    private int addressId;
     private String shippingAddress;
     private String sessionId;
 }
