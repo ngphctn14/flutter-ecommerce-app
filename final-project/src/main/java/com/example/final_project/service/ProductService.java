@@ -14,4 +14,10 @@ public interface ProductService {
     Page<ProductResponse> getAllProducts(int page, int size, String sortBy, String direction);
 
     Page<ProductResponse> getFilterProducts(String keyword, List<Integer> categoryIds, List<Integer> brandIds, double minPrice, double maxPrice, int page, int size, String sortBy, String direction);
+
+    List<ProductResponse> getAllProductsDefault();
+
+    ResponseEntity<String> updateProduct(int productId, ProductRequest productRequest, MultipartFile file);
+
+    ResponseEntity<String> deleteProduct(int productId);
 }

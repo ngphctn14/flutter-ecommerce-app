@@ -12,6 +12,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:5000")
 public class ProductVariantController {
     private final ProductVariantService productVariantService;
 
@@ -23,10 +24,20 @@ public class ProductVariantController {
         return productVariantService.createProductVariant(productVariantRequest, files);
     }
 
-    // Update quantity in inventory
-    @PostMapping("/api/v1/update/quantity")
-    public ResponseEntity<String> updateQuantityProductVariant(@RequestBody InventoryRequest inventoryRequest) {
-        return productVariantService.updateQuantityProductVariant(inventoryRequest);
+    // Update productVariant
+    @PutMapping("/api/v1/productVariants/{productVariant_id}")
+    public ResponseEntity<String> updateProductVariant(
+            @PathVariable int productVariant_id,
+            @RequestPart("productVariant") ProductVariantRequest productVariantRequest,
+            @RequestPart(value = "file", required = false) List<MultipartFile> files
+    ) {
+        return productVariantService.updateProductVariant(productVariant_id, productVariantRequest, files);
+    }
+
+    // Xoá productVariant
+    @DeleteMapping("/api/v1/productVariants/{productVariant_id}")
+    public ResponseEntity<String> deleteProductVariant(@PathVariable int productVariant_id) {
+        return productVariantService.deleteProductVariant(productVariant_id);
     }
 
     // Trả về danh sách productVariants (các biến thể) theo product_id
@@ -35,10 +46,9 @@ public class ProductVariantController {
         return productVariantService.getProductVariants(product_id);
     }
 
-
-    // Xoá productVariant
-    @DeleteMapping("/api/v1/productVariants/{productVariant_id}")
-    public ResponseEntity<String> deleteProductVariant(@PathVariable int productVariant_id) {
-        return productVariantService.deleteProductVariant(productVariant_id);
+    // Update quantity in inventory
+    @PutMapping("/api/v1/update/quantity")
+    public ResponseEntity<String> updateQuantityProductVariant(@RequestBody InventoryRequest inventoryRequest) {
+        return productVariantService.updateQuantityProductVariant(inventoryRequest);
     }
 }

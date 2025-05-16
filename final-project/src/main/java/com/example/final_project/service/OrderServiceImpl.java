@@ -1,17 +1,21 @@
 package com.example.final_project.service;
 
-import com.example.final_project.dto.CustomUserDetails;
-import com.example.final_project.dto.OrderRequest;
+import com.example.final_project.dto.*;
 import com.example.final_project.entity.*;
 import com.example.final_project.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import javax.swing.text.html.Option;
 import java.security.Principal;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
@@ -31,6 +35,7 @@ public class OrderServiceImpl implements OrderService {
     private final EmailService emailService;
     private final CouponRepository couponRepository;
     private final InventoryRepository inventoryRepository;
+    private final ProductVariantRepository productVariantRepository;
 
 
     @Override
@@ -68,7 +73,7 @@ public class OrderServiceImpl implements OrderService {
                 user.setFullName(orderRequest.getFullName());
                 user.setPassword(passwordPlain);
                 user.setShippingAddress(orderRequest.getShippingAddress());
-                userRepository.save(user);
+                user = userRepository.save(user);
 
                 // Role
                 Role role = roleRepository.findByName("USER").orElseThrow();
@@ -114,6 +119,7 @@ public class OrderServiceImpl implements OrderService {
         order.setUser(user);
         order.setPurchaseDate(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
         order.setTotalAmount(finalPrice);
+        order.setCouponCode(cart.get().getCoupon().getCode());
         order.setStatus("Pending");
         orderRepository.save(order);
 
@@ -207,14 +213,10 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public ResponseEntity<?> getOrderStatus(int orderId, Principal principal) {
+    public ResponseEntity<?> getOrderStatus(int orderId) {
         Optional<Order> order = orderRepository.findById(orderId);
         if (order.isEmpty()) {
             return ResponseEntity.badRequest().body("Order not found");
-        }
-
-        if (principal == null) {
-            return ResponseEntity.badRequest().body("You are not logged in");
         }
 
         // Lấy list status theo orderId
@@ -230,5 +232,168 @@ public class OrderServiceImpl implements OrderService {
                 .toList();
 
         return ResponseEntity.ok().body(response);
+    }
+
+    @Override
+    public Page<OrderResponse> getAllOrders(Pageable pageable) {
+        Page<Order> orders = orderRepository.findAll(pageable);
+
+
+        return orders.map(
+                order -> {
+                    OrderResponse orderResponse = OrderResponse.builder()
+                            .orderId(order.getId())
+                            .fullName(order.getUser().getFullName())
+                            .purchaseDate(order.getPurchaseDate())
+                            .totalAmount(order.getTotalAmount())
+                            .couponCode(order.getCouponCode() == null ? "" : order.getCouponCode())
+                            .status(order.getStatus())
+                            .build();
+
+                    List<OrderItemResponse> orderItemResponses = order.getOrderItemList().stream()
+                            .map(orderItem -> OrderItemResponse.builder()
+                                    .orderItemId(orderItem.getId())
+                                    .productVariantName(orderItem.getVariant().getVariantName())
+                                    .quantity(orderItem.getQuantity())
+                                    .price(orderItem.getPrice())
+                                    .build())
+                            .toList();
+
+                    orderResponse.setOrderItems(orderItemResponses);
+
+                    return orderResponse;
+                }
+        );
+    }
+
+    @Override
+    public Page<OrderResponse> getOrderTimeline(Pageable pageable, String filter, LocalDate starDate, LocalDate endDate) {
+        LocalDateTime start, end;
+
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+
+        switch (filter.toLowerCase()) {
+            case "today":
+                start = today.atStartOfDay();
+                end = today.plusDays(1).atStartOfDay();
+                break;
+            case "yesterday":
+                start = today.minusDays(1).atStartOfDay();
+                end = today.atStartOfDay();
+                break;
+            case "this_week":
+                start = today.with(DayOfWeek.MONDAY).atStartOfDay();
+                end = today.plusDays(1).atStartOfDay();
+                break;
+            case "this_month":
+                start = today.withDayOfMonth(1).atStartOfDay();
+                end = today.plusDays(1).atStartOfDay();
+                break;
+            case "custom":
+                start = starDate.atStartOfDay();
+                end = endDate.plusDays(1).atStartOfDay();
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid filter: " + filter);
+        }
+
+        Page<Order> orders = orderRepository.findByPurchaseDateBetween(start, end, pageable);
+
+        return orders.map(
+                order -> {
+                    OrderResponse orderResponse = OrderResponse.builder()
+                            .orderId(order.getId())
+                            .fullName(order.getUser().getFullName())
+                            .purchaseDate(order.getPurchaseDate())
+                            .totalAmount(order.getTotalAmount())
+                            .couponCode(order.getCouponCode() == null ? "" : order.getCouponCode())
+                            .status(order.getStatus())
+                            .build();
+
+                    List<OrderItemResponse> orderItemResponses = order.getOrderItemList().stream()
+                            .map(orderItem -> OrderItemResponse.builder()
+                                    .orderItemId(orderItem.getId())
+                                    .productVariantName(orderItem.getVariant().getVariantName())
+                                    .quantity(orderItem.getQuantity())
+                                    .price(orderItem.getPrice())
+                                    .build())
+                            .toList();
+
+                    orderResponse.setOrderItems(orderItemResponses);
+
+                    return orderResponse;
+                }
+        );
+    }
+
+    @Override
+    public ResponseEntity<String> updateOrder(int orderId, OrderUpdate orderUpdate) {
+        Optional<Order> order = orderRepository.findById(orderId);
+        if (order.isEmpty()) {
+            return ResponseEntity.badRequest().body("Order not found");
+        }
+
+        Optional<User> user = userRepository.findById(orderUpdate.getUserId());
+        if (user.isEmpty()) {
+            return ResponseEntity.badRequest().body("User not found");
+        }
+
+        order.get().setUser(user.get());
+        order.get().setPurchaseDate(orderUpdate.getPurchaseDate());
+        order.get().setTotalAmount(orderUpdate.getTotalAmount());
+        order.get().setCouponCode(orderUpdate.getCouponCode());
+        order.get().setStatus(orderUpdate.getStatus());
+
+        // Update OrderItem
+        List<OrderItem> updatedItem = new ArrayList<>();
+        for (OrderItemUpdate orderItemUpdate: orderUpdate.getOrderItemUpdates()) {
+            OrderItem item = null;
+            if (String.valueOf(orderItemUpdate.getOrderItemId()) != null) {
+                item = order.get().getOrderItemList().stream()
+                        .filter(i -> i.getId() == orderItemUpdate.getOrderItemId())
+                        .findFirst()
+                        .orElseThrow(() -> new IllegalArgumentException("OrderItem not found"));
+            }
+
+            Optional<ProductVariant> productVariant = productVariantRepository.findById(orderItemUpdate.getProductVariantId());
+            item.setVariant(productVariant.get());
+            item.setQuantity(orderItemUpdate.getQuantity());
+            item.setPrice(orderItemUpdate.getPrice());
+            updatedItem.add(item);
+        }
+
+        order.get().setOrderItemList(updatedItem);
+        orderRepository.save(order.get());
+
+        return ResponseEntity.ok().body("Order updated");
+    }
+
+    @Override
+    public List<OrderResponse> getOrderHistory(int userId) {
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isEmpty()) {
+            return null;
+        }
+
+        List<Order> orders = orderRepository.findByUserId(userId);
+
+        return orders.stream()
+                .map(order -> OrderResponse.builder()
+                        .orderId(order.getId())
+                        .fullName(user.get().getFullName())
+                        .purchaseDate(order.getPurchaseDate())
+                        .totalAmount(order.getTotalAmount())
+                        .couponCode(order.getCouponCode() == null ? "" : order.getCouponCode())
+                        .status(order.getStatus())
+                        .orderItems(order.getOrderItemList().stream()
+                                .map(orderItem -> OrderItemResponse.builder()
+                                        .orderItemId(orderItem.getId())
+                                        .productVariantName(orderItem.getVariant().getVariantName())
+                                        .price(orderItem.getPrice())
+                                        .quantity(orderItem.getQuantity())
+                                        .build())
+                                .toList())
+                        .build())
+                .toList();
     }
 }

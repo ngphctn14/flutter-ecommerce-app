@@ -16,4 +16,6 @@ public interface BrandService {
     ResponseEntity<String> deleteBrand(int id);
 
     List<ProductResponse> getProductsByBrandId(int id);
+
+    ResponseEntity<String> updateBrand(int id, BrandRequest brandRequest);
 }

@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter @Setter
@@ -12,12 +13,14 @@ public class ProductVariantResponse {
     private int id;
 
     private String variantName;
+    private double costPrice;   // Giá gốc
     private double priceDiff;   // Gia chenh lech
-    private String specs;       // Lưu thông số product (RAM, ROM,...)
+    private String specs;       // Lưu thông số product json (RAM, ROM,...)
+
+    private LocalDateTime createdAt;
 
     // Lưu inventory
     private int quantity;
-
     // Lưu images
     private List<String> images;
 }

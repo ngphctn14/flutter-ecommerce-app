@@ -8,6 +8,7 @@ import lombok.Setter;
 @Getter @Setter
 public class ProductVariantRequest {
     private String variantName;
+    private double costPrice;   // Giá gốc
     private double priceDiff;   // Gia chenh lech
     private String specs;       // Thông số (RAM, ROM, ...) json
     private int productId;
