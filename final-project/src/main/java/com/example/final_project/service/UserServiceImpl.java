@@ -5,9 +5,6 @@ import com.example.final_project.dto.*;
 import com.example.final_project.entity.*;
 import com.example.final_project.repository.*;
 import com.example.final_project.util.JwtTokenUtil;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthException;
-import com.google.firebase.auth.FirebaseToken;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,10 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -81,14 +75,13 @@ public class    UserServiceImpl implements UserService {
         userRoleRepository.save(userRole);
 
         Address address = Address.builder()
-                .province(userCreate.getAddress().getProvince())
-                .provinceCode(userCreate.getAddress().getProvinceCode())
-                .district(userCreate.getAddress().getDistrict())
-                .districtCode(userCreate.getAddress().getDistrictCode())
                 .ward(userCreate.getAddress().getWard())
                 .wardCode(userCreate.getAddress().getWardCode())
+                .district(userCreate.getAddress().getDistrict())
+                .districtCode(userCreate.getAddress().getDistrictCode())
+                .province(userCreate.getAddress().getProvince())
+                .provinceCode(userCreate.getAddress().getProvinceCode())
                 .addressDetail(userCreate.getAddress().getAddressDetail())
-                .isDefault(true)
                 .user(user)
                 .build();
 
@@ -147,18 +140,20 @@ public class    UserServiceImpl implements UserService {
             List<Address> addresses = addressRepository.findByUserId(userId);
 
             UserResponse userResponse = UserResponse.builder()
+                    .userId(user.get().getId())
                     .image(user.get().getImage())
                     .fullName(user.get().getFullName())
                     .email(user.get().getEmail())
+                    .active(user.get().isActive())
                     .addresses(addresses.stream()
                             .map(address -> AddressResponse.builder()
                                     .addressId(address.getAddress_id())
+                                    .ward(address.getWard())
+                                    .wardCode(address.getWardCode())
                                     .province(address.getProvince())
                                     .provinceCode(address.getProvinceCode())
                                     .district(address.getDistrict())
                                     .districtCode(address.getDistrictCode())
-                                    .ward(address.getWard())
-                                    .wardCode(address.getWardCode())
                                     .addressDetail(address.getAddressDetail())
                                     .isDefault(address.isDefault())
                                     .build())
@@ -270,27 +265,26 @@ public class    UserServiceImpl implements UserService {
     public Page<UserResponse> getAllUsers(Pageable pageable) {
         Page<User> users = userRepository.findByIdNot(2, pageable);
 
-        return users.map(user -> {
-            UserResponse userResponse = UserResponse.builder()
-                    .userId(user.getId())
-                    .fullName(user.getFullName())
-                    .email(user.getEmail())
-                    .active(user.isActive())
-                    .build();
+        return users.map(
+                user -> {
+                    UserResponse userResponse = UserResponse.builder()
+                            .userId(user.getId())
+                            .fullName(user.getFullName())
+                            .email(user.getEmail())
+                            .active(user.isActive())
+                            .image(user.getImage())
+                            .build();
 
-            List<AddressResponse> addressResponses = user.getAddresses().stream()
-                    .map(address -> AddressResponse.builder()
-                            .addressId(address.getAddress_id())
-                            .isDefault(address.isDefault())
-                            .province(address.getProvince())
-                            .provinceCode(address.getProvinceCode())
-                            .district(address.getDistrict())
-                            .districtCode(address.getDistrictCode())
-                            .ward(address.getWard())
-                            .wardCode(address.getWardCode())
-                            .addressDetail(address.getAddressDetail())
-                            .build())
-                    .toList();
+                    List<AddressResponse> addressResponses = user.getAddresses().stream()
+                            .map(address -> AddressResponse.builder()
+                                    .addressId(address.getAddress_id())
+                                    .isDefault(address.isDefault())
+//                                    .districtCode(address.getDistrictCode())
+                                    .district(address.getDistrict())
+//                                    .provinceCode(address.getProvinceCode())
+                                    .province(address.getProvince())
+                                    .build())
+                            .toList();
 
             userResponse.setAddresses(addressResponses);
             return userResponse;
@@ -304,17 +298,10 @@ public class    UserServiceImpl implements UserService {
             return ResponseEntity.badRequest().body("User not found");
         }
 
-        User u = user.get();
-
-        if (userUpdate.getFullName() != null) {
-            u.setFullName(userUpdate.getFullName());
-        }
-
-        if (userUpdate.getShippingAddress() != null) {
-            u.setShippingAddress(userUpdate.getShippingAddress());
-        }
-
-        userRepository.save(u);
+        user.get().setFullName(userUpdate.getFullName());
+//        user.get().setEmail(userUpdate.getEmail());
+//        user.get().setPassword(passwordEncoder.encode(userUpdate.getPassword()));
+        userRepository.save(user.get());
 
         return ResponseEntity.ok().body("User updated successfully");
     }
@@ -343,6 +330,32 @@ public class    UserServiceImpl implements UserService {
         userRepository.save(user.get());
 
         return ResponseEntity.ok().body("User updated");
+    }
+
+    @Override
+    public ResponseEntity<?> updateUserV2(int userId, UserUpdate userUpdate, MultipartFile image) {
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isEmpty()) {
+            return ResponseEntity.badRequest().body("User not found");
+        }
+
+
+        // check image
+        String urlImage = "";
+        if (image != null) {
+            try {
+                urlImage = cloudinaryService.uploadImage(image);
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().body("Error while uploading image");
+            }
+        }
+
+        // update
+        user.get().setFullName(userUpdate.getFullName());
+        user.get().setImage(Objects.equals(urlImage, "") ? user.get().getImage() : urlImage);
+        userRepository.save(user.get());
+
+        return ResponseEntity.ok().body("User updated successfully");
     }
 
 //    @Override

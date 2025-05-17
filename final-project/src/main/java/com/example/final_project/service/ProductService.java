@@ -20,4 +20,8 @@ public interface ProductService {
     ResponseEntity<String> updateProduct(int productId, ProductRequest productRequest, MultipartFile file);
 
     ResponseEntity<String> deleteProduct(int productId);
+
+    List<ProductResponse> getNewProducts();
+
+    List<ProductResponse> getAllProductsBestSeller();
 }

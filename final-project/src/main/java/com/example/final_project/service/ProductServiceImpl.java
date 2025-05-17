@@ -8,6 +8,7 @@ import com.example.final_project.entity.Category;
 import com.example.final_project.entity.Product;
 import com.example.final_project.repository.BrandRepository;
 import com.example.final_project.repository.CategoryRepository;
+import com.example.final_project.repository.OrderItemRepository;
 import com.example.final_project.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -32,6 +33,7 @@ public class ProductServiceImpl implements ProductService {
     private final CategoryRepository categoryRepository;
     private final BrandRepository brandRepository;
     private final CloudinaryService cloudinaryService;
+    private final OrderItemRepository orderItemRepository;
 
     @Override
     public ResponseEntity<String> addProduct(ProductRequest productRequest, MultipartFile file) {
@@ -187,6 +189,7 @@ public class ProductServiceImpl implements ProductService {
         return ResponseEntity.ok().body("Product deleted successfully!");
     }
 
+
     private ProductResponse mapToResponse(Product product) {
         return ProductResponse.builder()
                 .id(product.getId())
@@ -198,6 +201,52 @@ public class ProductServiceImpl implements ProductService {
                 .categoryName(product.getCategory().getName())
                 .brandName(product.getBrand().getName())
                 .build();
+    }
+
+    @Override
+    public List<ProductResponse> getNewProducts() {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime startOfMonth = now.withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
+        LocalDateTime endOfMonth = now.withDayOfMonth(now.toLocalDate().lengthOfMonth())
+                .withHour(23).withMinute(59).withSecond(59).withNano(999_999_999);
+
+        List<Product> products = productRepository.findProductsCreatedThisMonth(startOfMonth, endOfMonth);
+
+        return products.stream()
+                .map(product -> ProductResponse.builder()
+                        .id(product.getId())
+                        .name(product.getName())
+                        .price(product.getPrice())
+                        .image(product.getImage())
+                        .description(product.getDescription())
+                        .specs(product.getSpecs())
+                        .categoryName(product.getCategory().getName())
+                        .brandName(product.getBrand().getName())
+                        .createdAt(product.getCreatedAt())
+                        .discountPercent(product.getDiscountPercent())
+                        .build())
+                .toList();
+    }
+
+    @Override
+    public List<ProductResponse> getAllProductsBestSeller() {
+        int limit = 10;
+        List<Product> products = orderItemRepository.getAllProductsBestSeller(PageRequest.of(0, limit));
+
+        return products.stream()
+                .map(product -> ProductResponse.builder()
+                        .id(product.getId())
+                        .name(product.getName())
+                        .price(product.getPrice())
+                        .description(product.getDescription())
+                        .image(product.getImage())
+                        .specs(product.getSpecs())
+                        .categoryName(product.getCategory().getName())
+                        .brandName(product.getBrand().getName())
+                        .createdAt(product.getCreatedAt())
+                        .discountPercent(product.getDiscountPercent())
+                        .build())
+                .toList();
     }
 
 }

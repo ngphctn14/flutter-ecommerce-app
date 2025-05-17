@@ -6,6 +6,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.*;
 
+import java.time.LocalDate;
+
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
@@ -20,4 +22,5 @@ public class Coupon {
     private double discountPrice;
     private int quantity;
     private boolean active;
+    private LocalDate expiryDate;
 }

@@ -1,6 +1,7 @@
 package com.example.final_project.controller;
 
 import com.example.final_project.dto.InventoryRequest;
+import com.example.final_project.dto.ProductResponse;
 import com.example.final_project.dto.ProductVariantRequest;
 import com.example.final_project.service.ProductVariantService;
 import lombok.RequiredArgsConstructor;
@@ -51,4 +52,21 @@ public class ProductVariantController {
     public ResponseEntity<String> updateQuantityProductVariant(@RequestBody InventoryRequest inventoryRequest) {
         return productVariantService.updateQuantityProductVariant(inventoryRequest);
     }
+
+    // Update giảm giá cho sản phẩm
+    @PutMapping("/api/v1/productVariants/update-discount/{productVariant_id}/{discountPercent}")
+    public ResponseEntity<String> setDiscountProductVariant(
+            @PathVariable int productVariant_id,
+            @PathVariable double discountPercent
+    ) {
+        return productVariantService.setDiscountProductVariant(productVariant_id, discountPercent);
+    }
+
+
+    // Lấy list product giảm giá
+    @GetMapping("/api/v1/products/discount")
+    public List<ProductResponse> getListProductsDiscount() {
+        return productVariantService.getListProductsDiscount();
+    }
+
 }

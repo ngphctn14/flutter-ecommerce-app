@@ -20,6 +20,11 @@ public class CouponController {
         return couponService.getAllCoupons();
     }
 
+    @GetMapping("/api/v1/coupon/users")
+    public List<CouponResponse> getAllCouponsForUsers() {
+        return couponService.getAllCouponsForUsers();
+    }
+
     @PostMapping("/api/v1/coupon")
     public ResponseEntity<String> createCoupon(@RequestBody CouponRequest couponRequest) {
         return couponService.createCoupon(couponRequest);

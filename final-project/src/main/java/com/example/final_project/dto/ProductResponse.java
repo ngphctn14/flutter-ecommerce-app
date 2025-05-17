@@ -23,4 +23,6 @@ public class ProductResponse {
     private String categoryName;
     private String brandName;
 
+    // Phần trăm giảm giá
+    private double discountPercent;
 }

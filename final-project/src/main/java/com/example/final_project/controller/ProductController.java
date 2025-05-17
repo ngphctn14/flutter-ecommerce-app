@@ -76,4 +76,16 @@ public class ProductController {
                 page, size, sortBy, direction
         );
     }
+
+    // Get sản phẩm mới
+    @GetMapping("/api/v1/products/new")
+    public List<ProductResponse> getNewProducts() {
+        return productService.getNewProducts();
+    }
+
+    // Lây danh sách product bestseller
+    @GetMapping("/api/v1/products/best-seller")
+    public List<ProductResponse> getAllProductsBestSeller() {
+        return productService.getAllProductsBestSeller();
+    }
 }

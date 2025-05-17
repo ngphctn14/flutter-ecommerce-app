@@ -25,6 +25,8 @@ public class ProductVariant {
 
     private LocalDateTime createdAt;
 
+    private double discountPercent;
+
     @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;

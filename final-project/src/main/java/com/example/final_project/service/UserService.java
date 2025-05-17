@@ -29,5 +29,7 @@ public interface UserService {
 
     ResponseEntity<?> bandUser(int userId);
 
+    ResponseEntity<?> updateUserV2(int userId, UserUpdate userUpdate, MultipartFile image);
+
 //    ResponseEntity<?> firebaseLogin(String idToken);
 }
