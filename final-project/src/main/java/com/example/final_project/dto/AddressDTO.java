@@ -7,8 +7,11 @@ import lombok.Setter;
 @Getter @Setter
 @Builder
 public class AddressDTO {
+    private String ward;
+    private String wardCode;
     private String district;
     private String districtCode;
     private String province;
     private String provinceCode;
+    private String addressDetail;
 }

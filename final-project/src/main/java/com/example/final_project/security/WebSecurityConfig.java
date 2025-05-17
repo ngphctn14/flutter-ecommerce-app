@@ -49,6 +49,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/v1/reset/password").permitAll()
                         .requestMatchers("/api/v1/users").permitAll()
                         .requestMatchers("/api/v1/users/**").permitAll()
+                        .requestMatchers("/api/v2/users/**").permitAll()
                         .requestMatchers("/api/v1/products/**").permitAll()
                         .requestMatchers("/api/v1/productVariants").permitAll()
                         .requestMatchers("/api/v1/productVariants/**").permitAll()

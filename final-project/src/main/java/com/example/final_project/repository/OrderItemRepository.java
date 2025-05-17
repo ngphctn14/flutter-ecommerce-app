@@ -1,6 +1,8 @@
 package com.example.final_project.repository;
 
 import com.example.final_project.entity.OrderItem;
+import com.example.final_project.entity.Product;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -34,4 +36,8 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Integer> {
 
     @Query("SELECT oi FROM OrderItem oi WHERE oi.order.purchaseDate BETWEEN :from AND :to")
     List<OrderItem> findByOrderPurchaseDateBetween(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+
+    @Query("SELECT oi.variant.product FROM OrderItem oi GROUP BY oi.variant.product ORDER BY SUM(oi.quantity) DESC")
+    List<Product> getAllProductsBestSeller(Pageable pageable);
+
 }

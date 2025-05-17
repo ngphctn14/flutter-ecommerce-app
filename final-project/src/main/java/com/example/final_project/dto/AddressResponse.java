@@ -11,8 +11,11 @@ public class AddressResponse {
 
     private boolean isDefault;  // Địa chỉ mặc định: true
 
+    private String ward;
+    private String wardCode;
     private String district;
     private String districtCode;
     private String province;
     private String provinceCode;
+    private String addressDetail;
 }

@@ -28,6 +28,7 @@ public class CouponServiceImpl implements CouponService {
                     .discountPrice(coupon.getDiscountPrice())
                     .quantity(coupon.getQuantity())
                     .active(coupon.isActive())
+                    .expiryDate(coupon.getExpiryDate())
                     .build();
             couponResponses.add(couponResponse);
         }
@@ -45,6 +46,7 @@ public class CouponServiceImpl implements CouponService {
         coupon.setDiscountPrice(couponRequest.getDiscountPrice());
         coupon.setQuantity(couponRequest.getQuantity());
         coupon.setActive(couponRequest.isActive());
+        coupon.setExpiryDate(couponRequest.getExpiryDate());
         couponRepository.save(coupon);
         return ResponseEntity.ok("Coupon Created");
     }
@@ -71,7 +73,28 @@ public class CouponServiceImpl implements CouponService {
         coupon.get().setDiscountPrice(couponRequest.getDiscountPrice());
         coupon.get().setQuantity(couponRequest.getQuantity());
         coupon.get().setActive(couponRequest.isActive());
+        coupon.get().setExpiryDate(couponRequest.getExpiryDate());
         couponRepository.save(coupon.get());
         return ResponseEntity.ok("Coupon Updated");
+    }
+
+    @Override
+    public List<CouponResponse> getAllCouponsForUsers() {
+        List<Coupon> coupons = couponRepository.findAll();
+        List<CouponResponse> couponResponses = new ArrayList<>();
+        for (Coupon coupon : coupons) {
+            if (coupon.isActive()) {
+                CouponResponse couponResponse = CouponResponse.builder()
+                        .id(coupon.getId())
+                        .code(coupon.getCode())
+                        .discountPrice(coupon.getDiscountPrice())
+                        .quantity(coupon.getQuantity())
+                        .active(coupon.isActive())
+                        .expiryDate(coupon.getExpiryDate())
+                        .build();
+                couponResponses.add(couponResponse);
+            }
+        }
+        return couponResponses;
     }
 }

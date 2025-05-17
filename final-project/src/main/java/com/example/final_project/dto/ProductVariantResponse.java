@@ -19,6 +19,9 @@ public class ProductVariantResponse {
 
     private LocalDateTime createdAt;
 
+    // Phần trăm giảm giá
+    private double discountPercent;
+
     // Lưu inventory
     private int quantity;
     // Lưu images

@@ -58,6 +58,16 @@ public class UserController {
         return userService.updateUser(userId, userUpdate);
     }
 
+    // Update thông tin user v2
+    @PutMapping("/api/v2/users/{userId}")
+    public ResponseEntity<?> updateUserV2(
+            @PathVariable int userId,
+            @RequestPart UserUpdate userUpdate,
+            @RequestPart(required = false) MultipartFile image
+    ) {
+        return userService.updateUserV2(userId, userUpdate, image);
+    }
+
     // Delete user
     // Xóa bảng con liên kết trước, sau đó xóa bảng cha
     @DeleteMapping("/api/v1/users/{userId}")

@@ -29,6 +29,9 @@ public class Product {
     // Thời gian tạo sản phẩm
     private LocalDateTime createdAt;
 
+    // Phần trăm giảm giá
+    private double discountPercent;
+
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;

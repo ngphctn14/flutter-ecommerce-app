@@ -137,6 +137,7 @@ public class OrderServiceImpl implements OrderService {
             orderItem.setVariant(item.getVariant());
             orderItem.setQuantity(item.getQuantity());
             orderItem.setPrice(item.getPrice());
+            orderItem.setImage(item.getVariant().getImages().get(0).getImagePath());
             orderItemRepository.save(orderItem);
         }
 
@@ -256,6 +257,7 @@ public class OrderServiceImpl implements OrderService {
                                     .productVariantName(orderItem.getVariant().getVariantName())
                                     .quantity(orderItem.getQuantity())
                                     .price(orderItem.getPrice())
+                                    .image(orderItem.getImage())
                                     .build())
                             .toList();
 
@@ -316,6 +318,7 @@ public class OrderServiceImpl implements OrderService {
                                     .productVariantName(orderItem.getVariant().getVariantName())
                                     .quantity(orderItem.getQuantity())
                                     .price(orderItem.getPrice())
+                                    .image(orderItem.getImage())
                                     .build())
                             .toList();
 
@@ -391,6 +394,7 @@ public class OrderServiceImpl implements OrderService {
                                         .productVariantName(orderItem.getVariant().getVariantName())
                                         .price(orderItem.getPrice())
                                         .quantity(orderItem.getQuantity())
+                                        .image(orderItem.getImage())
                                         .build())
                                 .toList())
                         .build())

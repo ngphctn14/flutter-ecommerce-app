@@ -23,6 +23,8 @@ public class OrderItem {
     @JoinColumn(name = "variant_id")
     private ProductVariant variant;
 
+    private String image;
+
     private int quantity;
     private double price;
 }

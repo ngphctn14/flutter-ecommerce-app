@@ -30,11 +30,14 @@ public class AddressServiceImpl implements AddressService {
 
         Address address = new Address();
         address.setUser(user.get());
+        address.setWard(addressDTO.getWard());
+        address.setWardCode(addressDTO.getWardCode());
         address.setDistrict(addressDTO.getDistrict());
         address.setDistrictCode(addressDTO.getDistrictCode());
         address.setProvince(addressDTO.getProvince());
         address.setProvinceCode(addressDTO.getProvinceCode());
-        address.setDefault(addresses == null);
+        address.setAddressDetail(addressDTO.getAddressDetail());
+        address.setDefault(addresses.isEmpty());
 
         addressRepository.save(address);
 

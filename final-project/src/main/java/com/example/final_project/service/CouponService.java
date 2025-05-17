@@ -14,4 +14,6 @@ public interface CouponService {
     ResponseEntity<String> deleteCoupon(int couponId);
 
     ResponseEntity<String> updateCoupon(int couponId, CouponRequest couponRequest);
+
+    List<CouponResponse> getAllCouponsForUsers();
 }

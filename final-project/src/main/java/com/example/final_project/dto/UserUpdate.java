@@ -8,6 +8,6 @@ import lombok.Setter;
 @Builder
 public class UserUpdate {
     private String fullName;
-    private String email;
-    private String password;
+//    private String email;
+//    private String password;
 }

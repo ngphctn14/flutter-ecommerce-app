@@ -2,6 +2,7 @@ package com.example.final_project.service;
 
 import com.example.final_project.cloudinary.CloudinaryService;
 import com.example.final_project.dto.InventoryRequest;
+import com.example.final_project.dto.ProductResponse;
 import com.example.final_project.dto.ProductVariantRequest;
 import com.example.final_project.dto.ProductVariantResponse;
 import com.example.final_project.entity.Images;
@@ -45,6 +46,7 @@ public class ProductVariantServiceImpl implements ProductVariantService {
                     .priceDiff(productVariantRequest.getPriceDiff())
                     .product(product.get())
                     .createdAt(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")))
+                    .discountPercent(1)
                     .build();
 
             // Lưu images
@@ -108,6 +110,7 @@ public class ProductVariantServiceImpl implements ProductVariantService {
                         .specs(productVariant.getSpecs())
                         .quantity(productVariant.getInventory().getQuantity())
                         .createdAt(productVariant.getCreatedAt())
+                        .discountPercent(productVariant.getDiscountPercent())
                         .images(productVariant.getImages().stream()
                                 .map(Images::getImagePath)
                                 .toList())
@@ -186,5 +189,43 @@ public class ProductVariantServiceImpl implements ProductVariantService {
         imagesRepository.saveAll(images);
 
         return ResponseEntity.ok().body("Product variant updated");
+    }
+
+    @Override
+    public ResponseEntity<String> setDiscountProductVariant(int productVariantId, double discountPercent) {
+        Optional<ProductVariant> productVariant = productVariantRepository.findById(productVariantId);
+        if (productVariant.isEmpty()) {
+            return ResponseEntity.badRequest().body("Product variant not found");
+        }
+
+        if (discountPercent > 0.5) {
+            return ResponseEntity.badRequest().body("Discount percent must less than 0.5");
+        }
+
+        productVariant.get().getProduct().setDiscountPercent(discountPercent);
+        productVariant.get().setDiscountPercent(discountPercent);
+        productVariantRepository.save(productVariant.get());
+
+        return ResponseEntity.ok().body("Product variant updated");
+    }
+
+    @Override
+    public List<ProductResponse> getListProductsDiscount() {
+        List<Product> products = productRepository.findByDiscountPercent();
+
+        return products.stream()
+                .map(product -> ProductResponse.builder()
+                        .id(product.getId())
+                        .name(product.getName())
+                        .price(product.getPrice())
+                        .image(product.getImage())
+                        .description(product.getDescription())
+                        .specs(product.getSpecs())
+                        .createdAt(product.getCreatedAt())
+                        .categoryName(product.getCategory().getName())
+                        .brandName(product.getBrand().getName())
+                        .discountPercent(product.getDiscountPercent())
+                        .build())
+                .toList();
     }
 }
