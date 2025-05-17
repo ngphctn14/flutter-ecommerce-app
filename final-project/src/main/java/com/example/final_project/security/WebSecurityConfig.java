@@ -70,6 +70,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/v1/change-password/user").authenticated()
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/api/v1/ratings").authenticated()
+                        .requestMatchers("/api/v1/ratings/").permitAll()
                         .requestMatchers("/api/v1/message/send").authenticated()
                         .anyRequest().authenticated()
 

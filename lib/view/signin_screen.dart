@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_ecommerce_app/controllers/auth_controller.dart';
 import 'package:flutter_ecommerce_app/utils/app_textstyles.dart';
-import 'package:flutter_ecommerce_app/view/forgot_password_screen.dart';
-import 'package:flutter_ecommerce_app/view/signup_screen.dart';
 import 'package:flutter_ecommerce_app/view/widgets/custom_textfield.dart';
 import 'package:get/get.dart';
+import 'dart:convert';
 
 class SignInScreen extends StatelessWidget {
   SignInScreen({super.key});
@@ -19,7 +18,7 @@ class SignInScreen extends StatelessWidget {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(24),
+          padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -40,43 +39,23 @@ class SignInScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 40),
-
-              // email textfield
               CustomTextField(
                 label: 'Email',
                 prefixIcon: Icons.email_outlined,
                 keyboardType: TextInputType.emailAddress,
                 controller: _emailController,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your email';
-                  }
-                  if (!GetUtils.isEmail(value)) {
-                    return 'Please enter a valid email';
-                  }
-                  return null;
-                },
                 onChanged: (context) {},
               ),
               const SizedBox(height: 16),
-              // password textfield
               CustomTextField(
                 label: 'Password',
                 prefixIcon: Icons.lock_outline,
                 keyboardType: TextInputType.visiblePassword,
                 isPassword: true,
                 controller: _passwordController,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your password';
-                  }
-                  return null;
-                },
                 onChanged: (context) {},
               ),
               const SizedBox(height: 8),
-
-              // forgot password
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
@@ -91,14 +70,13 @@ class SignInScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 24),
-              // sign in button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: _handleSignIn,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Theme.of(context).primaryColor,
-                    padding: EdgeInsets.symmetric(vertical: 16),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -113,7 +91,6 @@ class SignInScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 24),
-              // sign up textbutton
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -143,11 +120,9 @@ class SignInScreen extends StatelessWidget {
     );
   }
 
-  // sign in button onpressed
   void _handleSignIn() {
     final authController = Get.find<AuthController>();
 
-    // Basic validation
     if (_emailController.text.isEmpty ||
         !GetUtils.isEmail(_emailController.text)) {
       Get.snackbar('Error', 'Please enter a valid email');
@@ -159,9 +134,10 @@ class SignInScreen extends StatelessWidget {
       return;
     }
 
-    authController.signInWithEmailAndPassword(
+    authController.login(
       _emailController.text.trim(),
       _passwordController.text.trim(),
     );
   }
 }
+

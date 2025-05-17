@@ -46,15 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              TextButton(
-                onPressed: () {
-                  Get.toNamed('/shopping', arguments: {
-                    'categoryId': categoryId,
-                    'title': title,
-                  });
-                },
-                child: const Text('Xem tất cả'),
-              ),
+
             ],
           ),
         ),
@@ -112,10 +104,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                   const Spacer(),
-                  IconButton(
-                    onPressed: () => Get.toNamed('/my-orders'),
-                    icon: const Icon(Icons.notifications),
-                  ),
                   IconButton(
                     onPressed: () => Get.toNamed('/my-cart'),
                     icon: const Icon(Icons.shopping_cart_outlined),

@@ -6,17 +6,28 @@ import lombok.*;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Getter @Setter
+@Getter
+@Setter
 @Builder
 public class Address {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int address_id;
 
-    private String district;
-    private String districtCode;
+    // Tên và mã tỉnh
     private String province;
     private String provinceCode;
+
+    // Tên và mã huyện
+    private String district;
+    private String districtCode;
+
+    // Tên và mã xã
+    private String ward;
+    private String wardCode;
+
+    // Địa chỉ chi tiết (số nhà, ấp, thôn...)
+    private String addressDetail;
 
     private boolean isDefault;
 

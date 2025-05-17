@@ -11,6 +11,7 @@ import '../services/cart_service.dart';
 import '../services/rating_service.dart';
 import '../models/Rating.dart';
 import 'package:get/get.dart';
+import 'package:flutter_ecommerce_app/controllers/auth_controller.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final Product product;
@@ -236,18 +237,28 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 ),
                 // Phần đánh giá sao của người dùng
                 StarRating(onRated: (stars) async {
+                  final token = Get.find<AuthController>().token;
+                  print("Token used: $token");
                   final response = await http.post(
                     Uri.parse('http://localhost:8080/api/v1/ratings'),
-                    headers: {'Content-Type': 'application/json'},
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Authorization': 'Bearer $token', // ✅ thêm dòng này
+                    },
                     body: jsonEncode({
                       'productId': widget.product.id,
                       'stars': stars,
                     }),
                   );
+
                   if (response.statusCode == 200) {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Đánh giá $stars sao thành công!')));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Đánh giá $stars sao thành công!')),
+                    );
                   } else {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Đánh giá thất bại!')));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Đánh giá thất bại!')),
+                    );
                   }
                 }),
                 const SizedBox(height: 30),
@@ -357,7 +368,7 @@ class _StarRatingState extends State<StarRating> {
     );
 
     if (confirmed == true) {
-      widget.onRated(stars); // Gọi callback để fetch API
+      widget.onRated(stars);
       setState(() => _selectedStar = stars);
     }
   }

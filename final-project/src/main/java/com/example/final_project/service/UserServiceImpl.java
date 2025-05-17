@@ -29,7 +29,7 @@ import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
-public class UserServiceImpl implements UserService {
+public class    UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final UserRoleRepository userRoleRepository;
@@ -42,27 +42,21 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResponseEntity<String> createUser(UserCreate userCreate, MultipartFile image) {
-        // Nếu chưa có role: user -> tạo role
         UserRole userRole = new UserRole();
         Optional<Role> role_user = roleRepository.findByName("USER");
         if (!role_user.isPresent()) {
             Role role = new Role();
             role.setName("USER");
             roleRepository.save(role);
-
             userRole.setRole(role);
-        }
-        else {
+        } else {
             userRole.setRole(role_user.get());
         }
 
-        // check email đã tồn tại
         Optional<User> checkUser = userRepository.findByEmail(userCreate.getEmail());
         if (checkUser.isPresent()) {
             return ResponseEntity.badRequest().body("Email has existed!");
         }
-
-
 
         User user = User.builder()
                 .fullName(userCreate.getFullName())
@@ -72,7 +66,6 @@ public class UserServiceImpl implements UserService {
                 .createdAt(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")))
                 .build();
 
-        // Upload image
         String urlImage = "";
         if (!image.isEmpty()) {
             try {
@@ -84,23 +77,25 @@ public class UserServiceImpl implements UserService {
 
         user.setImage(urlImage);
         user = userRepository.save(user);
-
         userRole.setUser(user);
         userRoleRepository.save(userRole);
 
-        // Lưu address
         Address address = Address.builder()
-                .district(userCreate.getAddress().getDistrict())
-                .districtCode(userCreate.getAddress().getDistrictCode())
                 .province(userCreate.getAddress().getProvince())
                 .provinceCode(userCreate.getAddress().getProvinceCode())
+                .district(userCreate.getAddress().getDistrict())
+                .districtCode(userCreate.getAddress().getDistrictCode())
+                .ward(userCreate.getAddress().getWard())
+                .wardCode(userCreate.getAddress().getWardCode())
+                .addressDetail(userCreate.getAddress().getAddressDetail())
+                .isDefault(true)
                 .user(user)
                 .build();
 
         addressRepository.save(address);
         return ResponseEntity.ok().body("Account user created");
-
     }
+
 
     @Override
     public ResponseEntity<?> login(UserLogin userLogin) {
@@ -146,10 +141,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResponseEntity<?> getUserById(int userId) {
+    /*public ResponseEntity<?> getUserById(int userId) {
         Optional<User> user = userRepository.findById(userId);
         if (user.isPresent()) {
-            // Lấy list địa chỉ theo userId
             List<Address> addresses = addressRepository.findByUserId(userId);
 
             UserResponse userResponse = UserResponse.builder()
@@ -163,9 +157,40 @@ public class UserServiceImpl implements UserService {
                                     .provinceCode(address.getProvinceCode())
                                     .district(address.getDistrict())
                                     .districtCode(address.getDistrictCode())
+                                    .ward(address.getWard())
+                                    .wardCode(address.getWardCode())
+                                    .addressDetail(address.getAddressDetail())
+                                    .isDefault(address.isDefault())
                                     .build())
-                            .toList()
-                    )
+                            .toList())
+                    .build();
+
+            return ResponseEntity.ok().body(userResponse);
+        }
+        return ResponseEntity.badRequest().body("User must be login");
+    }*/
+    public ResponseEntity<?> getUserById(int userId) {
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isPresent()) {
+            List<Address> addresses = addressRepository.findByUserId(userId);
+
+            UserResponse userResponse = UserResponse.builder()
+                    .image(user.get().getImage())
+                    .fullName(user.get().getFullName())
+                    .email(user.get().getEmail())
+                    .addresses(addresses.stream()
+                            .map(address -> AddressResponse.builder()
+                                    .addressId(address.getAddress_id())
+                                    .province(address.getProvince())
+                                    .provinceCode(address.getProvinceCode())
+                                    .district(address.getDistrict())
+                                    .districtCode(address.getDistrictCode())
+                                    .ward(address.getWard())
+                                    .wardCode(address.getWardCode())
+                                    .addressDetail(address.getAddressDetail())
+                                    .isDefault(address.isDefault())
+                                    .build())
+                            .toList())
                     .build();
 
             return ResponseEntity.ok().body(userResponse);
@@ -245,30 +270,31 @@ public class UserServiceImpl implements UserService {
     public Page<UserResponse> getAllUsers(Pageable pageable) {
         Page<User> users = userRepository.findByIdNot(2, pageable);
 
-        return users.map(
-                user -> {
-                    UserResponse userResponse = UserResponse.builder()
-                            .userId(user.getId())
-                            .fullName(user.getFullName())
-                            .email(user.getEmail())
-                            .active(user.isActive())
-                            .build();
+        return users.map(user -> {
+            UserResponse userResponse = UserResponse.builder()
+                    .userId(user.getId())
+                    .fullName(user.getFullName())
+                    .email(user.getEmail())
+                    .active(user.isActive())
+                    .build();
 
-                    List<AddressResponse> addressResponses = user.getAddresses().stream()
-                            .map(address -> AddressResponse.builder()
-                                    .addressId(address.getAddress_id())
-                                    .isDefault(address.isDefault())
-                                    .districtCode(address.getDistrictCode())
-                                    .district(address.getDistrict())
-                                    .provinceCode(address.getProvinceCode())
-                                    .province(address.getProvince())
-                                    .build())
-                            .toList();
+            List<AddressResponse> addressResponses = user.getAddresses().stream()
+                    .map(address -> AddressResponse.builder()
+                            .addressId(address.getAddress_id())
+                            .isDefault(address.isDefault())
+                            .province(address.getProvince())
+                            .provinceCode(address.getProvinceCode())
+                            .district(address.getDistrict())
+                            .districtCode(address.getDistrictCode())
+                            .ward(address.getWard())
+                            .wardCode(address.getWardCode())
+                            .addressDetail(address.getAddressDetail())
+                            .build())
+                    .toList();
 
-                    userResponse.setAddresses(addressResponses);
-                    return userResponse;
-                }
-        );
+            userResponse.setAddresses(addressResponses);
+            return userResponse;
+        });
     }
 
     @Override
@@ -278,13 +304,21 @@ public class UserServiceImpl implements UserService {
             return ResponseEntity.badRequest().body("User not found");
         }
 
-        user.get().setFullName(userUpdate.getFullName());
-        user.get().setEmail(userUpdate.getEmail());
-        user.get().setPassword(passwordEncoder.encode(userUpdate.getPassword()));
-        userRepository.save(user.get());
+        User u = user.get();
+
+        if (userUpdate.getFullName() != null) {
+            u.setFullName(userUpdate.getFullName());
+        }
+
+        if (userUpdate.getShippingAddress() != null) {
+            u.setShippingAddress(userUpdate.getShippingAddress());
+        }
+
+        userRepository.save(u);
 
         return ResponseEntity.ok().body("User updated successfully");
     }
+
 
     @Override
     @Transactional
